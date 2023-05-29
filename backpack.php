@@ -22,10 +22,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use classes\obf_backpack;
+
 define('AJAX_SCRIPT', true);
 
 require_once(__DIR__ . '/../../config.php');
-require_once(__DIR__ . '/class/backpack.php');
+require_once(__DIR__ . '/classes/backpack.php');
 
 require_login(); // TODO: Handle login requirement more gracefully for more useful error messages?
 
@@ -33,7 +35,7 @@ $userid = required_param('userid', PARAM_INT);
 $provider = optional_param('provider', 0, PARAM_INT);
 $context = context_user::instance($userid);
 
-if ((int)$USER->id === $userid) {
+if ((int) $USER->id === $userid) {
     require_capability('local/obf:viewownbackpack', $context);
 } else {
     // TODO: more specific capabilities?

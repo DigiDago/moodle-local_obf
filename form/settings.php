@@ -23,7 +23,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') or die();
+use classes\obf_client;
+use classes\obf_user_preferences;
+
+defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/obfform.php');
 
@@ -38,7 +41,7 @@ class obf_settings_form extends local_obf_form_base implements renderable {
      * Form definition.
      */
     protected function definition() {
-        require_once(__DIR__ . '/../class/user_preferences.php');
+        require_once(__DIR__ . '/../classes/user_preferences.php');
         global $OUTPUT;
 
         $mform = $this->_form;
@@ -50,7 +53,6 @@ class obf_settings_form extends local_obf_form_base implements renderable {
 
         $mform->addElement('advcheckbox', 'coursereset', get_string('coursereset', 'local_obf'));
         $mform->setType('coursereset', PARAM_INT);
-
 
         $badgedisplayoptions = array(
             obf_user_preferences::USERS_CAN_MANAGE_DISPLAY_OF_BADGES => get_string('userscanmanagedisplayofbadges', 'local_obf'),

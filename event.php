@@ -22,13 +22,18 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__ . '/../../config.php');
-require_once(__DIR__ . '/class/assertion.php');
-require_once(__DIR__ . '/class/assertion_collection.php');
-require_once(__DIR__ . '/class/criterion/criterion.php');
-require_once(__DIR__ . '/class/event.php');
-require_once(__DIR__ . '/form/revoke.php');
+use classes\criterion\obf_criterion;
+use classes\obf_assertion;
+use classes\obf_client;
+use classes\obf_issue_event;
+use classes\obfassertioncollection;
 
+require_once(__DIR__ . '/../../config.php');
+require_once(__DIR__ . '/classes/obf_assertion.php');
+require_once(__DIR__ . '/classes/obfassertioncollection.php');
+require_once(__DIR__ . '/classes/criterion/criterion.php');
+require_once(__DIR__ . '/classes/event.php');
+require_once(__DIR__ . '/form/revoke.php');
 
 require_login();
 
@@ -76,7 +81,8 @@ if ($eventdata) {
                     if (!$hasrevokepermission && $action == 'revoke') {
                         require_capability('local/obf:revokecourseevents', $context);
                         $hasrevokepermission = true;
-                    } if (!$hasviewpermission) {
+                    }
+                    if (!$hasviewpermission) {
                         require_capability('local/obf:viewcourseevents', $context);
                         $hasviewpermission = true;
                     }
@@ -106,14 +112,13 @@ if (!$hasrevokepermission && $action == 'revoke') {
 }
 $client = obf_client::get_instance();
 
-
 $PAGE->set_url(new moodle_url('/local/obf/event.php', array('id' => $eventid)));
 $PAGE->set_context(context_system::instance());
 $PAGE->set_pagelayout('admin');
 $PAGE->set_title(get_string('obf', 'local_obf'));
 
 navigation_node::override_active_url(new moodle_url('/local/obf/badge.php',
-        array('action' => 'history')));
+    array('action' => 'history')));
 
 $assertion = obf_assertion::get_instance_by_id($eventid, $client);
 $assertion->get_revoked($client);
@@ -133,24 +138,24 @@ switch ($action) {
         $formurl = new moodle_url('/local/obf/event.php', array(
             'id' => $eventid, 'clientid' => $clientid, 'action' => 'revoke', 'course_id' => $courseid
         ));
-        $collection = new obf_assertion_collection(array($assertion));
+        $collection = new obfassertioncollection(array($assertion));
         $users = $collection->get_assertion_users($assertion);
         $showformurl = new moodle_url('/local/obf/event.php', array(
             'id' => $eventid, 'clientid' => $clientid, 'action' => 'view', 'course_id' => $courseid, 'show' => 'revoke'
         ));
         $revokeform = new obf_revoke_form($formurl,
-                array('assertion' => $assertion,
-                      'users' => $users,
-                      'showurl' => $showformurl,
-                      'showrevoke' => $show == 'revoke'));
+            array('assertion' => $assertion,
+                'users' => $users,
+                'showurl' => $showformurl,
+                'showrevoke' => $show == 'revoke'));
 
         $showrevokeform = $hasrevokepermission;
         if ($showrevokeform) {
             $content .= $PAGE->get_renderer('local_obf')->render_assertion($assertion, true, $revokeform);
             $params = array(array('class' => 'revokebutton',
-                    'question' => get_string('confirmrevokation', 'local_obf')));
+                'question' => get_string('confirmrevokation', 'local_obf')));
             $PAGE->requires->yui_module('moodle-local_obf-submitconfirm',
-                    'M.local_obf.init_submitconfirm', $params);
+                'M.local_obf.init_submitconfirm', $params);
         } else {
             $content .= $PAGE->get_renderer('local_obf')->render_assertion($assertion);
         }
@@ -159,7 +164,7 @@ switch ($action) {
     case 'revoke':
         if ($assertion) {
             $redirecturl = new moodle_url('/local/obf/event.php', array(
-                'id' => $eventid,'clientid' => $clientid, 'action' => 'view'
+                'id' => $eventid, 'clientid' => $clientid, 'action' => 'view'
             ));
             if (count($emailar) > 0) {
                 try {
@@ -175,7 +180,6 @@ switch ($action) {
         }
         break;
 }
-
 
 $content .= $OUTPUT->footer();
 

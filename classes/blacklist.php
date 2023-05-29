@@ -22,6 +22,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace classes;
+use Blacklist;
+use User;
+
 /**
  * Blacklist of badges user wishes to hide.
  *
@@ -45,14 +49,17 @@ class obf_blacklist {
 
     /**
      * Constructor
+     *
      * @param int $userid
      */
     public function __construct($userid) {
         $this->userid = $userid;
         $this->get_blacklist();
     }
+
     /**
      * Get the user id of the user the backpack belongs to.
+     *
      * @return int
      */
     public function get_userid() {
@@ -65,6 +72,7 @@ class obf_blacklist {
     public function exists() {
         return $this->indb;
     }
+
     /**
      * Get badge ids the user has blacklisted.
      *
@@ -93,8 +101,10 @@ class obf_blacklist {
         $this->blacklistedbadges = $blacklistedbadges;
         return $this->blacklistedbadges;
     }
+
     /**
      * Add a badge id to blacklisted badges.
+     *
      * @param string $badgeid
      * @return $this
      */
@@ -104,8 +114,10 @@ class obf_blacklist {
         }
         return $this;
     }
+
     /**
      * Remove a badge id from blacklisted badges.
+     *
      * @param string $badgeid
      * @return $this
      */
@@ -116,8 +128,10 @@ class obf_blacklist {
         }
         return $this;
     }
+
     /**
      * Save blacklist
+     *
      * @param stdClass|array $newblacklist
      */
     public function save($newblacklist = null) {
@@ -125,7 +139,7 @@ class obf_blacklist {
         if (is_null($newblacklist)) {
             $newblacklist = $this->get_blacklist();
         }
-        $newblacklist = (array)$newblacklist;
+        $newblacklist = (array) $newblacklist;
         // Filter out empty params.
         $requiredkeys = array_values($newblacklist);
 
@@ -137,7 +151,7 @@ class obf_blacklist {
         if (!empty($todelete)) {
             list($insql, $inparams) = $DB->get_in_or_equal($todelete, SQL_PARAMS_NAMED, 'cname', true);
             $inparams = array_merge($inparams, array('userid' => $this->userid));
-            $DB->delete_records_select($preftable, 'user_id = :userid AND badge_id '.$insql, $inparams );
+            $DB->delete_records_select($preftable, 'user_id = :userid AND badge_id ' . $insql, $inparams);
         }
         foreach ($requiredkeys as $key) {
             if (!in_array($key, $existing)) {

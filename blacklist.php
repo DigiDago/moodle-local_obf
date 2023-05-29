@@ -21,10 +21,14 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+use classes\obf_blacklist;
+use classes\obf_user_preferences;
+
 require_once(__DIR__ . '/../../config.php');
-require_once(__DIR__ . '/class/blacklist.php');
+require_once(__DIR__ . '/classes/blacklist.php');
 require_once(__DIR__ . '/form/blacklist.php');
-require_once(__DIR__ . '/class/user_preferences.php');
+require_once(__DIR__ . '/classes/user_preferences.php');
 
 $error = optional_param('error', '', PARAM_TEXT);
 $msg = optional_param('msg', '', PARAM_TEXT);
@@ -43,8 +47,8 @@ $content = $OUTPUT->header();
 $obfuserpreferences = new obf_user_preferences($USER->id);
 $formurl = new moodle_url('/local/obf/blacklist.php', array('action' => 'update'));
 $form = new obf_blacklist_form($formurl,
-        array('user' => $USER,
-              'blacklist' => new obf_blacklist($USER->id)));
+    array('user' => $USER,
+        'blacklist' => new obf_blacklist($USER->id)));
 
 switch ($action) {
     case 'edit':

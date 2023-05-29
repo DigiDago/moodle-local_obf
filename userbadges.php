@@ -22,12 +22,17 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use classes\obf_assertion;
+use classes\obf_blacklist;
+use classes\obf_client;
+use classes\obfassertioncollection;
+
 define('AJAX_SCRIPT', true);
 
 require_once(__DIR__ . '/../../config.php');
-require_once(__DIR__ . '/class/assertion.php');
-require_once(__DIR__ . '/class/blacklist.php');
-require_once(__DIR__ . '/class/assertion_collection.php');
+require_once(__DIR__ . '/classes/obf_assertion.php');
+require_once(__DIR__ . '/classes/blacklist.php');
+require_once(__DIR__ . '/classes/obfassertioncollection.php');
 
 require_login(); // TODO: Handle login requirement more gracefully for more useful error messages?
 
@@ -36,11 +41,11 @@ $context = context_user::instance($userid);
 
 $client = obf_client::get_instance();
 $blacklist = new obf_blacklist($userid);
-$assertions = new obf_assertion_collection();
+$assertions = new obfassertioncollection();
 $assertions->add_collection(obf_assertion::get_assertions_all($client, $DB->get_record('user', array('id' => $userid))->email));
 $assertions->apply_blacklist($blacklist);
 
-if ((int)$USER->id === $userid) {
+if ((int) $USER->id === $userid) {
     require_capability('local/obf:viewownbackpack', $context);
 } else {
     // TODO: more specific capabilities?

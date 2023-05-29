@@ -22,6 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace classes;
+use moodle_database;
+
 /**
  * Issue events -class.
  *
@@ -56,7 +59,7 @@ class obf_issue_event {
     public function __construct($eventid = null, moodle_database $db = null) {
         if (!is_null($eventid) && !is_null($db)) {
             $record = $db->get_record('local_obf_issue_events',
-                    array('event_id' => $eventid));
+                array('event_id' => $eventid));
 
             if ($record !== false) {
                 $this->set_id($record->id)->set_eventid($record->event_id);
@@ -66,8 +69,10 @@ class obf_issue_event {
             }
         }
     }
+
     /**
      * Populate object from a database record.
+     *
      * @param stdClass $record
      * @return $this
      */
@@ -78,62 +83,20 @@ class obf_issue_event {
         }
         return $this;
     }
-    
+
     public static function get_criterion_events($criterion) {
         global $DB;
         $criterionid = is_number($criterion) ? $criterion : $criterion->get_id();
-        $records = $DB->get_records('local_obf_issue_events', array('obf_criterion_id' => $criterionid ));
+        $records = $DB->get_records('local_obf_issue_events', array('obf_criterion_id' => $criterionid));
         if (false == $records) {
             return array();
         }
         $events = array();
-        foreach($records as $record) {
+        foreach ($records as $record) {
             $obj = new self();
             $events[] = $obj->populate_from_record($record);
         }
         return $events;
-    }
-    /**
-     * Get all events that were issued by a criterion that is related to a course.
-     * @param int $courseid
-     * @param moodle_database $db
-     */
-    public static function get_events_in_course($courseid, moodle_database $db) {
-        $ret = array();
-        $sql = 'SELECT evt.* FROM {local_obf_issue_events} AS evt ' .
-                'LEFT JOIN {local_obf_criterion_courses} AS cc ' .
-                'ON (evt.obf_criterion_id=cc.obf_criterion_id) ' .
-                'WHERE cc.courseid = (?) AND evt.obf_criterion_id IS NOT NULL';
-        $params = array($courseid);
-        $records = $db->get_records_sql($sql, $params);
-        foreach ($records as $record) {
-            $obj = new self();
-            $ret[] = $obj->populate_from_record($record);
-        }
-        return $ret;
-    }
-
-    /**
-     * @param $events
-     * @param moodle_database $db
-     * @return array
-     */
-    public static function get_course_related_events($events, moodle_database $db) {
-        $ret = array();
-        try {
-            list($insql, $inparams) = $db->get_in_or_equal($events);
-            $sql = "SELECT evt.* FROM {local_obf_issue_events} 
-                AS evt WHERE evt.event_id $insql";
-            $records = $db->get_records_sql($sql, $inparams);
-            foreach ($records as $record) {
-                $obj = new self();
-                $ret[] = $obj->populate_from_record($record);
-            }
-        }
-        catch (Exception $e) {
-            echo $e->getMessage();
-        }
-        return $ret;
     }
 
     /**
@@ -154,7 +117,7 @@ class obf_issue_event {
         } else {
             $id = $db->insert_record('local_obf_issue_events', $obj, true);
         }
-        
+
         if ($id === false) {
             return false;
         }
@@ -164,6 +127,7 @@ class obf_issue_event {
 
     /**
      * Get id.
+     *
      * @return int
      */
     public function get_id() {
@@ -172,6 +136,7 @@ class obf_issue_event {
 
     /**
      * Set id.
+     *
      * @param int $id
      */
     public function set_id($id) {
@@ -181,6 +146,7 @@ class obf_issue_event {
 
     /**
      * Get event id.
+     *
      * @return string The event id in Open Badge Factory
      */
     public function get_eventid() {
@@ -189,6 +155,7 @@ class obf_issue_event {
 
     /**
      * Set event id.
+     *
      * @param string $eventid The event id in Open Badge Factory
      * @return $this
      */
@@ -199,6 +166,7 @@ class obf_issue_event {
 
     /**
      * Get user id.
+     *
      * @return int
      */
     public function get_userid() {
@@ -207,6 +175,7 @@ class obf_issue_event {
 
     /**
      * Set user id.
+     *
      * @param int $userid
      * @return $this
      */
@@ -220,6 +189,7 @@ class obf_issue_event {
 
     /**
      * Has user id?
+     *
      * @return boolean True if object has a userid.
      */
     public function has_userid() {
@@ -228,6 +198,7 @@ class obf_issue_event {
 
     /**
      * Get criterion id.
+     *
      * @return int Criterion id
      */
     public function get_criterionid() {
@@ -236,6 +207,7 @@ class obf_issue_event {
 
     /**
      * Set criterion id.
+     *
      * @param int $criterionid Criterion id
      */
     public function set_criterionid($criterionid) {
@@ -248,6 +220,7 @@ class obf_issue_event {
 
     /**
      * Has criterion id?
+     *
      * @return boolean True if object has a criterion id set.
      */
     public function has_criterionid() {

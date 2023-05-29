@@ -21,9 +21,12 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+use classes\obf_issuer;
+
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__ . '/../class/issuer.php');
+require_once(__DIR__ . '/../classes/issuer.php');
 
 /**
  * Issuer testcase.
@@ -45,7 +48,7 @@ class local_obf_issuer_testcase extends advanced_testcase {
             'name' => 'Test Issuer');
         $issuer = obf_issuer::get_instance_from_arr($data);
 
-        $this->assertInstanceOf('obf_issuer', $issuer);
+        $this->assertInstanceOf('classes\obf_issuer', $issuer);
         $this->assertEquals('testissuer', $issuer->get_id());
         $this->assertEquals('Issuer description', $issuer->get_description());
         $this->assertEquals('issuer@example.com', $issuer->get_email());

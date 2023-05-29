@@ -21,8 +21,16 @@
  * @copyright  2013-2021, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-require_once(__DIR__ . '/../lib.php');
 
+namespace classes;
+
+use curl;
+use dml_write_exception;
+use url;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/../lib.php');
 require_once($CFG->libdir . '/filelib.php');
 
 /**
@@ -40,7 +48,7 @@ class obf_client {
     /**
      * @var string Static current client id
      */
-    private static $client_id = null;
+    private static $clientid = null;
 
     /**
      * @var curl|null Transport. Curl.
@@ -78,7 +86,7 @@ class obf_client {
      * @param curl|null $transport
      * @return obf_client The client.
      */
-    public static function get_instance($transport=null) {
+    public static function get_instance($transport = null) {
         global $DB;
         if (is_null(self::$client)) {
 
@@ -86,11 +94,11 @@ class obf_client {
 
             $oauth2 = $DB->get_records('local_obf_oauth2', null, 'client_name');
             if (count($oauth2) > 0) {
-                // use the first one by default
+                // Use the first one by default.
                 $o2 = current($oauth2);
-                if (self::$client_id) {
+                if (self::$clientid) {
                     foreach ($oauth2 as $o) {
-                        if ($o->client_id === self::$client_id) {
+                        if ($o->client_id === self::$clientid) {
                             $o2 = $o;
                             break;
                         }
@@ -113,27 +121,25 @@ class obf_client {
      * @param string client_id in local_obf_oauth2 table row
      * @return obf_client The client.
      */
-    public static function connect($id, $user=null, $transport=null) {
-        self::$client    = null;
-        self::$client_id = $id;
+    public static function connect($id, $user = null, $transport = null) {
+        self::$client = null;
+        self::$clientid = $id;
 
         $ok = true;
 
-        $legacy_id = get_config('local_obf', 'obfclientid');
+        $legacyid = get_config('local_obf', 'obfclientid');
         $available = self::get_available_clients($user);
 
-        if (empty($legacy_id) && empty($available)) {
-            // No connection available
+        if (empty($legacyid) && empty($available)) {
+            // No connection available.
             $ok = false;
-        }
-        else if ($legacy_id) {
-            // Legacy connection
+        } else if ($legacyid) {
+            // Legacy connection.
             if ($id) {
-                $ok = $id === $legacy_id;
+                $ok = $id === $legacyid;
             }
-        }
-        else if (!is_null($user)) {
-            // OAuth2 connections
+        } else if (!is_null($user)) {
+            // OAuth2 connections.
             $ok = is_null($id) ? !empty($available) : isset($available[$id]);
         }
 
@@ -149,7 +155,7 @@ class obf_client {
      *
      * @return array id and name pairs
      */
-    public static function get_available_clients($user=null) {
+    public static function get_available_clients($user = null) {
         global $CFG, $DB, $USER;
 
         if (is_null($user)) {
@@ -157,13 +163,13 @@ class obf_client {
         }
 
         if ($user === '*' || in_array($user->id, explode(',', $CFG->siteadmins))) {
-            // Can see all connected clients
+            // Can see all connected clients.
             return $DB->get_records_menu('local_obf_oauth2', null, 'client_name', 'client_id, client_name');
         }
 
-        // Get connected clients based on user role access (role can be in any context)
+        // Get connected clients based on user role access (role can be in any context).
         $sql =
-           "SELECT DISTINCT o.client_id, o.client_name FROM {local_obf_oauth2} o
+            "SELECT DISTINCT o.client_id, o.client_name FROM {local_obf_oauth2} o
             INNER JOIN {local_obf_oauth2_role} r ON o.id = r.oauth2_id
             INNER JOIN {role_assignments} ra ON r.role_id = ra.roleid
             WHERE ra.userid = ?
@@ -196,8 +202,7 @@ class obf_client {
     private function obf_url() {
         if (isset($this->oauth2->obf_url)) {
             $url = $this->oauth2->obf_url;
-        }
-        else {
+        } else {
             $url = get_config('local_obf', 'apiurl');
         }
         return rtrim($url, '/');
@@ -224,7 +229,6 @@ class obf_client {
         return get_config('local_obf', 'apidataretrieve') == self::RETRIEVE_LOCAL;
     }
 
-
     /**
      * Set current active API client credentials
      *
@@ -237,13 +241,13 @@ class obf_client {
             throw new Exception('Invalid parameter $obf_url');
         }
         if (!preg_match('/^\w+$/', $input->client_id)) {
-            throw new Exception('Invalid parameter $client_id');
+            throw new Exception('Invalid parameter $clientid');
         }
         if (!preg_match('/^\w+$/', $input->client_secret)) {
-            throw new Exception('Invalid parameter $client_secret');
+            throw new Exception('Invalid parameter $clientsecret');
         }
 
-        self::$client_id = $input->client_id;
+        self::$clientid = $input->client_id;
 
         $input->obf_url = rtrim($input->obf_url, '/');
 
@@ -260,13 +264,13 @@ class obf_client {
 
         $this->require_client_id();
 
-        if ( !isset($this->oauth2->access_token) || $this->oauth2->token_expires < time()) {
+        if (!isset($this->oauth2->access_token) || $this->oauth2->token_expires < time()) {
 
             $url = $this->obf_url() . '/v1/client/oauth2/token';
 
             $params = array(
-                   'grant_type' => 'client_credentials',
-                    'client_id' => $this->oauth2->client_id,
+                'grant_type' => 'client_credentials',
+                'client_id' => $this->oauth2->client_id,
                 'client_secret' => $this->oauth2->client_secret
             );
 
@@ -289,7 +293,7 @@ class obf_client {
         }
 
         return array(
-            'access_token'  => $this->oauth2->access_token,
+            'access_token' => $this->oauth2->access_token,
             'token_expires' => $this->oauth2->token_expires
         );
     }
@@ -322,33 +326,31 @@ class obf_client {
      *
      * @return array
      */
-    private function get_curl_options($auth=true) {
+    private function get_curl_options($auth = true) {
 
-        // don't verify localhost dev server
+        // Don't verify localhost dev server.
         $url = $this->obf_url();
         $secure = strpos($url, 'https://localhost/') !== 0;
 
         $opt = array(
-            'RETURNTRANSFER'    => true,
-            'FOLLOWLOCATION'    => false,
-            'SSL_VERIFYHOST'    => $secure ? 2 : 0,
-            'SSL_VERIFYPEER'    => $secure ? 1 : 0
+            'RETURNTRANSFER' => true,
+            'FOLLOWLOCATION' => false,
+            'SSL_VERIFYHOST' => $secure ? 2 : 0,
+            'SSL_VERIFYPEER' => $secure ? 1 : 0
         );
 
         if ($auth) {
             if (isset($this->oauth2)) {
                 $token = $this->oauth2_access_token();
                 $opt['HTTPHEADER'] = array("Authorization: Bearer " . $token['access_token']);
-            }
-            else {
+            } else {
                 $opt['SSLCERT'] = $this->get_cert_filename();
-                $opt['SSLKEY']  = $this->get_pkey_filename();
+                $opt['SSLKEY'] = $this->get_pkey_filename();
             }
         }
 
         return $opt;
     }
-
 
     /**
      * Decode line-delimited json
@@ -358,7 +360,7 @@ class obf_client {
      */
     private function decode_ldjson($input) {
         $out = array();
-        foreach (explode("\r\n", $input) AS $chunk) {
+        foreach (explode("\r\n", $input) as $chunk) {
             if ($chunk) {
                 $out[] = json_decode($chunk, true);
             }
@@ -368,6 +370,7 @@ class obf_client {
 
     /**
      * Get raw response.
+     *
      * @return string[] Raw response.
      */
     public function get_raw_response() {
@@ -376,6 +379,7 @@ class obf_client {
 
     /**
      * Enable/disable storing raw response.
+     *
      * @param bool $enable
      * @return obf_client This object.
      */
@@ -394,7 +398,7 @@ class obf_client {
      * @return string The response string.
      * @throws Exception In case something goes wrong.
      */
-    private function _request($method, $url, $params=array(), $retry=true, $other_oauth2=null) {
+    private function request($method, $url, $params = array(), $retry = true, $otheroauth2 = null) {
         global $DB;
 
         $curl = $this->get_transport();
@@ -421,17 +425,17 @@ class obf_client {
 
         if ($info['http_code'] === 403 && empty(get_config('local_obf', 'obfclientid'))) {
             if ($retry) {
-                // try again one time
-                return $this->_request($method, $url, $params, false, $other_oauth2);
+                // Try again one time.
+                return $this->request($method, $url, $params, false, $otheroauth2);
             }
-            // try with all other available connections
+            // Try with all other available connections.
             if (isset($this->oauth2)) {
-                if (is_null($other_oauth2)) {
-                    $other_oauth2 = $DB->get_records_select('local_obf_oauth2', 'client_id != ?', array($this->oauth2->client_id));
+                if (is_null($otheroauth2)) {
+                    $otheroauth2 = $DB->get_records_select('local_obf_oauth2', 'client_id != ?', array($this->oauth2->client_id));
                 }
-                if (!empty($other_oauth2)) {
-                    $this->set_oauth2(array_shift($other_oauth2));
-                    return $this->_request($method, $url, $params, true, $other_oauth2);
+                if (!empty($otheroauth2)) {
+                    $this->set_oauth2(array_shift($otheroauth2));
+                    return $this->request($method, $url, $params, true, $otheroauth2);
                 }
             }
         }
@@ -444,38 +448,18 @@ class obf_client {
             $this->error = isset($response['error']) ? $response['error'] : '';
             $appendtoerror = defined('PHPUNIT_TEST') && PHPUNIT_TEST ? ' ' . $method . ' ' . $url : '';
             throw new Exception(get_string('apierror' . $this->httpcode, 'local_obf',
-                $this->error) . $appendtoerror, $this->httpcode);
+                    $this->error) . $appendtoerror, $this->httpcode);
         }
 
-        return $response;
-    }
-
-    /**
-     * Makes a CURL-request to OBF API (legacy style).
-     *
-     * @param string $url The API path.
-     * @param string $method The HTTP method.
-     * @param array $params The params of the request.
-     * @param Closure $preformatter In some cases the returned string isn't
-     *      valid JSON. In those situations one has to manually preformat the
-     *      returned data before decoding the JSON.
-     * @return array The json-decoded response.
-     * @throws Exception In case something goes wrong.
-     */
-    public function request($url, $method = 'get', array $params = array(), Closure $preformatter = null) {
-
-        $output = $this->_request($method, $url, $params);
-
-        if ($output !== false) {
+        if ($response !== false) {
             if (!is_null($preformatter)) {
-                $output = $preformatter($output);
+                $response = $preformatter($response);
             }
-            $response = json_decode($output, true);
+            $response = json_decode($response, true);
         }
 
         return $response;
     }
-
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -487,13 +471,12 @@ class obf_client {
     public function test_connection() {
         try {
             $url = $this->obf_url() . '/v1/ping/' . $this->client_id();
-            $this->_request('get', $url);
+            $this->request('get', $url);
             return -1;
         } catch (Exception $exc) {
             return $exc->getCode();
         }
     }
-
 
     /**
      * Get all the badges from the API.
@@ -512,7 +495,7 @@ class obf_client {
         }
 
         $url = $this->obf_url() . '/v1/badge/' . $this->client_id();
-        $res = $this->_request('get', $url, $params);
+        $res = $this->request('get', $url, $params);
 
         return $this->decode_ldjson($res);
     }
@@ -532,14 +515,14 @@ class obf_client {
             return $this->get_badges($categories, $query);
         }
 
-        $prev_oauth2 = $this->oauth2;
+        $prevoauth2 = $this->oauth2;
 
         $out = [];
         foreach ($oauth2 as $o2) {
             $this->set_oauth2($o2);
             $out = array_merge($out, $this->get_badges($categories, $query));
         }
-        $this->set_oauth2($prev_oauth2);
+        $this->set_oauth2($prevoauth2);
 
         return $out;
     }
@@ -548,12 +531,12 @@ class obf_client {
      * Get a single badge from the API.
      *
      * @param string $badgeid
-     * @throws Exception If the request fails
      * @return array The badge data.
+     * @throws Exception If the request fails
      */
     public function get_badge($badgeid) {
         $url = $this->obf_url() . '/v1/badge/' . $this->client_id() . '/' . $badgeid;
-        $res = $this->_request('get', $url);
+        $res = $this->request('get', $url);
 
         return json_decode($res, true);
     }
@@ -561,12 +544,12 @@ class obf_client {
     /**
      * Get issuer data from the API.
      *
-     * @throws Exception If the request fails
      * @return array The issuer data.
+     * @throws Exception If the request fails
      */
     public function get_issuer() {
         $url = $this->obf_url() . '/v1/client/' . $this->client_id();
-        $res = $this->_request('get', $url);
+        $res = $this->request('get', $url);
 
         return json_decode($res, true);
     }
@@ -599,7 +582,7 @@ class obf_client {
         }
 
         $url = $this->obf_url() . '/v1/event/' . $this->client_id();
-        $res = $this->_request('get', $url, $params);
+        $res = $this->request('get', $url, $params);
 
         return $this->decode_ldjson($res);
     }
@@ -621,13 +604,13 @@ class obf_client {
         $params['email'] = $email;
 
         if (get_config('local_obf', 'obfclientid')) {
-            // legacy connection, only one client
+            // Legacy connection, only one client.
             $url = $this->obf_url() . '/v1/event/' . $this->client_id();
-            $res = $this->_request('get', $url, $params);
+            $res = $this->request('get', $url, $params);
             return $this->decode_ldjson($res);
         }
 
-        $prev_o2 = $this->oauth2;
+        $prevo2 = $this->oauth2;
 
         $oauth2 = $DB->get_records('local_obf_oauth2');
 
@@ -637,12 +620,12 @@ class obf_client {
                 $this->set_oauth2($o2);
 
                 $url = $this->obf_url() . '/v1/event/' . $this->client_id();
-                $res = $this->_request('get', $url, $params);
+                $res = $this->request('get', $url, $params);
 
                 $out = array_merge($out, $this->decode_ldjson($res));
             }
         }
-        $this->set_oauth2($prev_o2);
+        $this->set_oauth2($prevo2);
 
         return $out;
     }
@@ -655,7 +638,7 @@ class obf_client {
      */
     public function get_event($eventid) {
         $url = $this->obf_url() . '/v1/event/' . $this->client_id() . '/' . $eventid;
-        $res = $this->_request('get', $url);
+        $res = $this->request('get', $url);
 
         return json_decode($res, true);
     }
@@ -668,11 +651,10 @@ class obf_client {
      */
     public function get_revoked($eventid) {
         $url = $this->obf_url() . '/v1/event/' . $this->client_id() . '/' . $eventid . '/revoked';
-        $res = $this->_request('get', $url);
+        $res = $this->request('get', $url);
 
         return json_decode($res, true);
     }
-
 
     /**
      * Get badge categories from the API.
@@ -681,7 +663,7 @@ class obf_client {
      */
     public function get_categories() {
         $url = $this->obf_url() . '/v1/badge/' . $this->client_id() . '/_/categorylist';
-        $res = $this->_request('get', $url);
+        $res = $this->request('get', $url);
 
         return json_decode($res, true);
     }
@@ -691,7 +673,7 @@ class obf_client {
      */
     public function delete_badge($badgeid) {
         $url = $this->obf_url() . '/v1/badge/' . $this->client_id() . '/' . $badgeid;
-        $this->_request('delete', $url);
+        $this->request('delete', $url);
     }
 
     /**
@@ -699,7 +681,7 @@ class obf_client {
      */
     public function delete_badges() {
         $url = $this->obf_url() . '/v1/badge/' . $this->client_id();
-        $this->_request('delete', $url);
+        $this->request('delete', $url);
     }
 
     /**
@@ -724,7 +706,7 @@ class obf_client {
         );
 
         $url = $this->obf_url() . '/v1/badge/' . $this->client_id();
-        $this->_request('post', $url, $params);
+        $this->request('post', $url, $params);
     }
 
     /**
@@ -740,11 +722,11 @@ class obf_client {
     public function issue_badge(obf_badge $badge, $recipients, $issuedon, $email, $criteriaaddendum, $course, $activity) {
         global $CFG, $DB;
 
-        $recipients_name_email = [];
+        $recipientsnameemail = [];
 
         $userfields = 'id, email, ' . implode(', ',
-            ['firstnamephonetic', 'lastnamephonetic', 'middlename', 'alternatename', 'firstname', 'lastname']
-        );
+                ['firstnamephonetic', 'lastnamephonetic', 'middlename', 'alternatename', 'firstname', 'lastname']
+            );
 
         $users = $DB->get_records_list('user', 'email', $recipients, '', $userfields);
         $now = time();
@@ -753,30 +735,29 @@ class obf_client {
             try {
                 $DB->execute($sql, array($user->id, $user->email, $now));
             } catch (dml_write_exception $e) {
-                // Ignore duplicate entry errors
+                // Ignore duplicate entry errors.
                 if (!$DB->record_exists('local_obf_history_emails', array('user_id' => $user->id, 'email' => $user->email))) {
                     throw $e;
                 }
             }
-            // Add user name, if available
+            // Add user name, if available.
             if ($user->firstname && $user->lastname && $user->email && !preg_match('/[><]/', $user->email)) {
-                $recipients_name_email[] = fullname($user) . ' <' . $user->email . '>';
-            }
-            else {
-                $recipients_name_email[] = $user->email;
+                $recipientsnameemail[] = fullname($user) . ' <' . $user->email . '>';
+            } else {
+                $recipientsnameemail[] = $user->email;
             }
         }
 
-        $course_name = $badge->get_course_name($course);
+        $coursename = $badge->get_course_name($course);
 
         $params = array(
-            'recipient' => $recipients_name_email,
+            'recipient' => $recipientsnameemail,
             'issued_on' => $issuedon,
             'api_consumer_id' => OBF_API_CONSUMER_ID,
             'log_entry' => array('course_id' => strval($course),
-                                 'course_name' => $course_name,
-                                 'activity_name' => $activity,
-                                 'wwwroot' => $CFG->wwwroot),
+                'course_name' => $coursename,
+                'activity_name' => $activity,
+                'wwwroot' => $CFG->wwwroot),
             'show_report' => 1
         );
 
@@ -796,7 +777,7 @@ class obf_client {
         }
 
         $url = $this->obf_url() . '/v1/badge/' . $this->client_id() . '/' . $badge->get_id();
-        $this->_request('post', $url, $params);
+        $this->request('post', $url, $params);
     }
 
     /**
@@ -808,18 +789,18 @@ class obf_client {
     public function revoke_event($eventid, $emails) {
         $emails = array_map('urlencode', $emails);
         $url = $this->obf_url() . '/v1/event/' . $this->client_id() . '/' . $eventid . '/?email=' . implode('|', $emails);
-        $this->_request('delete', $url);
+        $this->request('delete', $url);
     }
 
     public function pub_get_badge($badgeid, $eventid) {
         $url = $this->obf_url() . '/v1/badge/_/' . $badgeid . '.json';
         $params = array('v' => '1.1', 'event' => $eventid);
-        $res = $this->_request('get', $url, $params);
+        $res = $this->request('get', $url, $params);
 
         return json_decode($res, true);
     }
 
-    // LEGACY api auth
+    // LEGACY api auth.
 
     /**
      * Deauthenticates the plugin.
@@ -868,12 +849,13 @@ class obf_client {
         $curl = $this->get_transport();
         $curlopts = $this->get_curl_options();
         $curlopts['FOLLOWLOCATION'] = true;
-        $image = $curl->get( $this->get_branding_image_url($imagename), array(), $curlopts);
+        $image = $curl->get($this->get_branding_image_url($imagename), array(), $curlopts);
         if ($curl->info['http_code'] !== 200) {
             return null;
         }
         return $image;
     }
+
     /**
      * Tries to authenticate the plugin against OBF API.
      *
@@ -899,7 +881,7 @@ class obf_client {
 
         $apiurl = $this->api_url_maker($url);
 
-        // For localhost test server
+        // For localhost test server.
         if (strpos($apiurl, 'https://localhost/') === 0) {
             $curlopts['SSL_VERIFYHOST'] = 0;
             $curlopts['SSL_VERIFYPEER'] = 0;
@@ -936,7 +918,7 @@ class obf_client {
 
         // Couldn't decrypt data with provided key.
         if (openssl_public_decrypt($token, $decrypted, $key,
-            OPENSSL_PKCS1_PADDING) === false) {
+                OPENSSL_PKCS1_PADDING) === false) {
             throw new Exception(get_string('tokendecryptionfailed', 'local_obf') .
                 ': ' . openssl_error_string());
         }
@@ -1019,20 +1001,25 @@ class obf_client {
 
     /**
      * Get absolute filename of certificate key-file.
+     *
      * @return string
      */
     public function get_pkey_filename() {
         return $this->get_pki_dir() . 'obf.key';
     }
+
     /**
      * Get absolute filename of certificate pem-file.
+     *
      * @return string
      */
     public function get_cert_filename() {
         return $this->get_pki_dir() . 'obf.pem';
     }
+
     /**
      * Get absolute path of certificate directory.
+     *
      * @return string
      */
     public function get_pki_dir() {

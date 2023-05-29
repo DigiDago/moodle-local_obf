@@ -21,6 +21,11 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+namespace classes;
+
+defined('MOODLE_INTERNAL') || die();
+
 require_once(__DIR__ . '/badge.php');
 require_once(__DIR__ . '/client.php');
 
@@ -65,11 +70,10 @@ class obf_badge_collection {
     /**
      * Populates this collection by fetching the badges from the OBF.
      */
-    public function populate($all=false) {
+    public function populate($all = false) {
         if ($all) {
             $badges = $this->client->get_badges_all();
-        }
-        else {
+        } else {
             $badges = $this->client->get_badges();
         }
 

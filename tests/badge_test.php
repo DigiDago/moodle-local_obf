@@ -21,7 +21,12 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-require_once(__DIR__ . '/../class/badge.php');
+
+use classes\obf_badge;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/../classes/badge.php');
 
 /**
  * Badge testcase.
@@ -68,13 +73,14 @@ class local_obf_badge_testcase extends advanced_testcase {
 
     /**
      * Test badges.
+     *
      * @param array $badgearr
      * @dataProvider badgeprovider
      */
     public function test_get_badges($badgearr) {
         $this->resetAfterTest();
 
-        $stub = $this->getMock('obf_client');
+        $stub = $this->getMock('classes\obf_client');
         $stub->expects($this->any())->method('get_badges')->will($this->returnValue($badgearr));
 
         $badges = obf_badge::get_badges($stub);

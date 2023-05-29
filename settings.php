@@ -21,9 +21,12 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+use classes\obf_client;
+
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__ . '/class/client.php');
+require_once(__DIR__ . '/classes/client.php');
 
 $hasobfconfig = $hassiteconfig || has_capability('local/obf:configure', context_system::instance());
 if ($hasobfconfig) {
@@ -32,11 +35,11 @@ if ($hasobfconfig) {
 
     // OBF-settings.
     $settings = new admin_externalpage('obfconfig', get_string('settings', 'local_obf'),
-            new moodle_url('/local/obf/config.php'), 'local/obf:configure');
-    
+        new moodle_url('/local/obf/config.php'), 'local/obf:configure');
+
     // Backpack-settings.
     $backpacksettings = new admin_externalpage('personalbadgecloudservices', get_string('personalbadgecloudservices', 'local_obf'),
-            new moodle_url('/local/obf/backpackconfig.php'), 'local/obf:configure');
+        new moodle_url('/local/obf/backpackconfig.php'), 'local/obf:configure');
 
     // Add pages to navigation.
     $ADMIN->add('root', $obf, 'location');
@@ -45,18 +48,18 @@ if ($hasobfconfig) {
 
     // Badge list -page.
     $badgelist = new admin_externalpage('badgelist', get_string('badgelist', 'local_obf'),
-            new moodle_url('/local/obf/badge.php', array('action' => 'list')), 'local/obf:viewallbadges');
+        new moodle_url('/local/obf/badge.php', array('action' => 'list')), 'local/obf:viewallbadges');
 
     // Awarding history -page.
     $history = new admin_externalpage('badgehistory', get_string('history', 'local_obf'),
-            new moodle_url('/local/obf/badge.php', array('action' => 'history')), 'local/obf:viewhistory');
+        new moodle_url('/local/obf/badge.php', array('action' => 'history')), 'local/obf:viewhistory');
 
     // Category settings page.
     $client = obf_client::get_instance();
 
     // Badge export settings.
     $export = new admin_externalpage('obfexportbadges', get_string('exportsettings', 'local_obf'),
-                    new moodle_url('/local/obf/config.php', array('action' => 'exportbadges')), 'local/obf:configure');
+        new moodle_url('/local/obf/config.php', array('action' => 'exportbadges')), 'local/obf:configure');
     $ADMIN->add('obf', $export);
 
     $ADMIN->add('obf', $badgelist);

@@ -21,6 +21,9 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+defined('MOODLE_INTERNAL') || die();
+
 $definitions = array(
     'obf_assertions' => array(
         'mode' => cache_store::MODE_APPLICATION,

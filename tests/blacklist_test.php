@@ -21,7 +21,12 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-require_once(__DIR__ . '/../class/blacklist.php');
+
+use classes\obf_blacklist;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/../classes/blacklist.php');
 
 /**
  * Blacklist testcase

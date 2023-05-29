@@ -21,11 +21,13 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 use Behat\Behat\Context\Step\Given;
 use Behat\Behat\Event\FeatureEvent;
 use Behat\Gherkin\Node\TableNode;
 use Behat\Mink\Driver\Selenium2Driver;
 use Behat\Mink\Session;
+use classes\obf_client;
 
 /**
  * Behat functions.
@@ -47,7 +49,7 @@ class behat_local_obf extends behat_base {
      * @AfterFeature
      */
     public static function teardownFeature(FeatureEvent $event) {
-        require_once(__DIR__ . '/../../class/client.php');
+        require_once(__DIR__ . '/../../classes/client.php');
         try {
             obf_client::get_instance()->delete_badges();
         } catch (Exception $e) {
@@ -56,6 +58,7 @@ class behat_local_obf extends behat_base {
         }
 
     }
+
     /**
      * Create pki dir, as install.php can't create it for behat_dataroot.
      */
@@ -67,6 +70,7 @@ class behat_local_obf extends behat_base {
             mkdir($newpkidir, $CFG->directorypermissions, true);
         }
     }
+
     /**
      * Entering a valid request token/API key to the settings.
      *
@@ -150,11 +154,11 @@ TABLE
      *
      * @Given /^I trigger cron$/
      */
-     /*
-      * public function iTriggerCron() {
-      *     $this->getSession()->visit($this->locate_path('/admin/cron.php'));
-      * }
-      */
+    /*
+     * public function iTriggerCron() {
+     *     $this->getSession()->visit($this->locate_path('/admin/cron.php'));
+     * }
+     */
 
     /**
      * Go to badge list.
@@ -183,19 +187,19 @@ TABLE
             new Given('I follow "' . $course . '"'),
             new Given('I follow "Edit settings"'),
             new Given('I fill the moodle form with:',
-                    new TableNode(<<<TABLE
+                new TableNode(<<<TABLE
                 | Enable completion tracking | Yes |
 TABLE
-                    )),
+                )),
             new Given('I press "Save changes"'),
             new Given('I turn editing mode on'),
             new Given('I add a "Assignment" to section "1" and I fill the form with:',
-                    new TableNode(<<<TABLE
+                new TableNode(<<<TABLE
                 | Assignment name                     | $assignment            |
                 | Description                         | Assignment description |
                 | assignsubmission_onlinetext_enabled | 1                      |
 TABLE
-                    )),
+                )),
             new Given('I follow "Course completion"'),
             new Given('I select "2" from "id_overall_aggregation"'),
             new Given('I click on "Condition: Activity completion" "link"'),

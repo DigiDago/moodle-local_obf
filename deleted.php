@@ -21,11 +21,15 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+use classes\criterion\obf_criterion;
+use classes\obf_client;
+
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once(__DIR__ . '/form/criteriondeletion.php');
-require_once(__DIR__ . '/class/client.php');
-require_once(__DIR__ . '/class/criterion/criterion.php');
+require_once(__DIR__ . '/classes/client.php');
+require_once(__DIR__ . '/classes/criterion/criterion.php');
 
 $context = context_system::instance();
 $url = new moodle_url('/local/obf/deleted.php');
@@ -49,7 +53,7 @@ switch ($action) {
         $criteria = obf_criterion::get_criteria_with_deleted_badges();
         foreach ($criteria as $criterion) {
             $deleteurl = new moodle_url('/local/obf/criterion.php',
-            array('badgeid' => $criterion->get_badgeid(),
+                array('badgeid' => $criterion->get_badgeid(),
                     'action' => 'delete', 'id' => $criterion->get_id()));
             $deleteform = new obf_criterion_deletion_form($deleteurl, array('criterion' => $criterion));
             $content .= html_writer::tag('strong', $criterion->get_badgeid());

@@ -22,11 +22,17 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use classes\obf_assertion;
+use classes\obf_backpack;
+use classes\obf_badge;
+use classes\obf_client;
+use classes\obf_issue_event;
+
 require_once(__DIR__ . '/../../config.php');
-require_once(__DIR__ . '/class/badge.php');
+require_once(__DIR__ . '/classes/badge.php');
 require_once(__DIR__ . '/form/issuance.php');
 require_once($CFG->dirroot . '/user/lib.php');
-require_once(__DIR__ . '/class/event.php');
+require_once(__DIR__ . '/classes/event.php');
 
 $clientid = optional_param('clientid', null, PARAM_ALPHANUM);
 
@@ -64,11 +70,11 @@ $badge = obf_badge::get_instance($badgeid);
 
 // Fix breadcrumbs.
 navigation_node::override_active_url(new moodle_url('/local/obf/badge.php',
-        array('action' => 'list')));
+    array('action' => 'list')));
 $PAGE->navbar->add($badge->get_name(),
-        new moodle_url('/local/obf/badge.php',
+    new moodle_url('/local/obf/badge.php',
         array('action' => 'show',
-    'id' => $badgeid, 'show' => 'details')));
+            'id' => $badgeid, 'show' => 'details')));
 $PAGE->navbar->add(get_string('issue', 'local_obf'));
 
 $url = new moodle_url('/local/obf/issue.php', array('id' => $badgeid));
@@ -83,19 +89,19 @@ if (!is_null($clientid)) {
 }
 
 $issuerform = new obf_issuance_form($url,
-        array('badge' => $badge, 'courseid' => $courseid, 'clientid' => $clientid, 'renderer' => $PAGE->get_renderer('local_obf')));
+    array('badge' => $badge, 'courseid' => $courseid, 'clientid' => $clientid, 'renderer' => $PAGE->get_renderer('local_obf')));
 
 // Issuance was cancelled.
 if ($issuerform->is_cancelled()) {
     // TODO: Check referer maybe and redirect there.
-    $returnurl = new moodle_url('/local/obf/badge.php', array('id' => $badge->get_id(), 'clientid' => $clientid, 'action' => 'show', 'show' => 'details'));
+    $returnurl = new moodle_url('/local/obf/badge.php',
+        array('id' => $badge->get_id(), 'clientid' => $clientid, 'action' => 'show', 'show' => 'details'));
 
     if (!empty($courseid)) {
         $returnurl->param('courseid', $courseid);
     }
     redirect($returnurl);
-}
-else if (!is_null($data = $issuerform->get_data())) { // Issuance form was submitted.
+} else if (!is_null($data = $issuerform->get_data())) { // Issuance form was submitted.
     $users = user_get_users_by_id($data->recipientlist);
     $recipients = array();
     $userids = array();
@@ -120,7 +126,8 @@ else if (!is_null($data = $issuerform->get_data())) { // Issuance form was submi
     $assertion = obf_assertion::get_instance()->set_badge($badge);
     $assertion->set_issuedon($data->issuedon)->set_recipients($recipients);
     $assertion->set_criteria_addendum($criteriaaddendum);
-    $assertion->get_email_template()->set_subject($data->emailsubject)->set_footer($data->emailfooter)->set_body($data->emailbody)->set_link_text($data->emaillinktext);
+    $assertion->get_email_template()->set_subject($data->emailsubject)->set_footer($data->emailfooter)->set_body($data->emailbody)
+        ->set_link_text($data->emaillinktext);
 
     $success = $assertion->process();
 
@@ -137,13 +144,13 @@ else if (!is_null($data = $issuerform->get_data())) { // Issuance form was submi
         // Course context.
         if (!empty($courseid)) {
             redirect(new moodle_url('/local/obf/badge.php',
-                    array('action' => 'list', 'courseid' => $courseid, 'clientid' => $clientid,
-                'msg' => get_string('badgeissued', 'local_obf'))));
+                array('action' => 'list', 'courseid' => $courseid, 'clientid' => $clientid,
+                    'msg' => get_string('badgeissued', 'local_obf'))));
         } else { // Site context.
             redirect(new moodle_url('/local/obf/badge.php',
-                    array('id' => $badge->get_id(), 'clientid' => $clientid,
-                'action' => 'show', 'show' => 'history', 'msg' => get_string('badgeissued',
-                        'local_obf'))));
+                array('id' => $badge->get_id(), 'clientid' => $clientid,
+                    'action' => 'show', 'show' => 'history', 'msg' => get_string('badgeissued',
+                    'local_obf'))));
         }
     } else { // Oh noes, issuance failed.
         $content .= $OUTPUT->notification('Badge issuance failed. Reason: ' . $assertion->get_error());

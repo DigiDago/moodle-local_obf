@@ -21,7 +21,14 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') or die();
+
+namespace classes\criterion;
+
+use html_writer;
+use moodle_url;
+use MoodleQuickForm;
+
+defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/course.php');
 
@@ -50,6 +57,7 @@ class obf_criterion_unknown extends obf_criterion_item {
 
         return $obj->populate_from_record($record);
     }
+
     /**
      * Get criterion.
      *
@@ -62,17 +70,19 @@ class obf_criterion_unknown extends obf_criterion_item {
 
         return $this->criterion;
     }
+
     /**
      * Review mock.
      *
-     * @param  obf_criterion $criterion
-     * @param  mixed[] $otheritems
-     * @param  array  $extra
+     * @param obf_criterion $criterion
+     * @param mixed[] $otheritems
+     * @param array $extra
      * @return array An empty array
      */
     public function review($criterion = null, $otheritems = null, &$extra = array()) {
         return array();
     }
+
     /**
      * Save.
      */
@@ -105,6 +115,7 @@ class obf_criterion_unknown extends obf_criterion_item {
 
         return $this;
     }
+
     /**
      * Delete criterion item.
      */
@@ -112,33 +123,40 @@ class obf_criterion_unknown extends obf_criterion_item {
         global $DB;
 
         $DB->delete_records('local_obf_criterion_courses', array('id' => $this->id));
-        obf_criterion::delete_empty($DB);
+        obf_criterion::delete_empty();
     }
 
     /**
      * Get name.
+     *
      * @return string
      */
     public function get_name() {
         return get_string('unknowncriterion', 'local_obf');
     }
+
     /**
      * Get name.
+     *
      * @return string
      */
     public function get_text() {
         $html = html_writer::tag('strong', $this->get_name());
         return $html;
     }
+
     /**
      * Is criterion item reviewable?
+     *
      * @return boolean False
      */
     public function is_reviewable() {
         return false;
     }
+
     /**
      * Populate from record.
+     *
      * @param stdClass $record
      * @return $this
      */
@@ -149,13 +167,15 @@ class obf_criterion_unknown extends obf_criterion_item {
             $this->set_completedby($record->completed_by);
         } else if (isset($record->criteria_type) && $record->criteria_type != obf_criterion_item::CRITERIA_TYPE_UNKNOWN) {
             return obf_criterion_item::build(array_merge(
-                    (array)$record,
-                    array('criteriatype' => $record->criteria_type)));
+                (array) $record,
+                array('criteriatype' => $record->criteria_type)));
         }
         return $this;
     }
+
     /**
      * Print options. (Nothing)
+     *
      * @param MoodleQuickForm& $mform
      * @param mixed& $obj
      */
@@ -164,9 +184,10 @@ class obf_criterion_unknown extends obf_criterion_item {
 
     /**
      * Get options to for criteria types.
+     *
      * @return array An associative array of criteria type options
      */
-    public static function get_criteria_type_options() { 
+    public static function get_criteria_type_options() {
         global $CFG;
         $optionlist = array(
             obf_criterion_item::CRITERIA_TYPE_UNKNOWN => get_string('selectcriteriatype', 'local_obf'),
@@ -183,10 +204,12 @@ class obf_criterion_unknown extends obf_criterion_item {
                 $optionlist[$key] = $val;
             }
         }
-        return  $optionlist;
+        return $optionlist;
     }
+
     /**
      * Prints criteria type select for criteria forms.
+     *
      * @param MoodleQuickForm& $mform
      * @param mixed& $obj
      */
@@ -199,43 +222,47 @@ class obf_criterion_unknown extends obf_criterion_item {
         if (!empty($criterionid) && ($this->get_criterionid() > 0) && !empty($courseid)) {
             if ($PAGE->pagetype == 'local-obf-badge') {
                 $url = new moodle_url('/local/obf/badge.php',
-                        array('id' => $this->get_criterion()->get_badgeid(),
+                    array('id' => $this->get_criterion()->get_badgeid(),
                         'action' => 'show', 'show' => 'criteria', 'courseid' => $this->get_courseid()));
             } else {
                 $url = new moodle_url('/local/obf/criterion.php',
-                        array('id' => $this->get_criterionid(),
+                    array('id' => $this->get_criterionid(),
                         'action' => 'edit', 'show' => 'criteria', 'courseid' => $this->get_courseid()));
             }
         }
 
         $mform->addElement('html',
-                html_writer::tag('p', get_string('selectcriteriatype_help', 'local_obf')));
+            html_writer::tag('p', get_string('selectcriteriatype_help', 'local_obf')));
 
         $select = $mform->addElement('select', 'criteriatype',
-                get_string('selectcriteriatype', 'local_obf'), $optionlist);
+            get_string('selectcriteriatype', 'local_obf'), $optionlist);
 
         $select->setSelected(obf_criterion_item::CRITERIA_TYPE_UNKNOWN);
 
         $mform->addElement('hidden', 'picktype', 'yes');
         $mform->setType('picktype', PARAM_TEXT);
     }
+
     /**
      * Print completion options. (Nothing)
+     *
      * @param MoodleQuickForm& $mform
      * @param mixed& $obj
      * */
     public function get_form_completion_options(&$mform, $obj = null) {
 
     }
+
     /**
      * Print after save options. (Nothing)
+     *
      * @param MoodleQuickForm& $mform
      * @param mixed& $obj
      * */
     public function get_form_after_save_options(&$mform, &$obj) {
 
     }
-    
+
     public function get_form_criteria_addendum_options(&$mform, &$obj) {
 
     }
@@ -252,6 +279,7 @@ class obf_criterion_unknown extends obf_criterion_item {
 
     /**
      * This criteria item supports multiple courses?
+     *
      * @return bool False
      */
     public function criteria_supports_multiple_courses() {

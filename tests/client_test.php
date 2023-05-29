@@ -21,6 +21,9 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+use classes\obf_client;
+
 /**
  * OBF Client testcase.
  *
@@ -31,10 +34,10 @@ class local_obf_client_testcase extends advanced_testcase {
     /**
      * Test API request.
      */
-    public function test_request() {
+    public function testrequest() {
         $this->resetAfterTest();
 
-        require_once(__DIR__ .'/lib/obf_mock_curl.php');
+        require_once(__DIR__ . '/lib/obf_mock_curl.php');
         $curl = obf_mock_curl::get_mock_curl($this);
         obf_mock_curl::add_client_test_methods($this, $curl);
 
@@ -54,9 +57,9 @@ class local_obf_client_testcase extends advanced_testcase {
 
         // Test preformatter.
         $response = $client->request('/test/', 'get', array(),
-                function () {
-                    return json_encode(array('preformatted' => 'i am!'));
-                });
+            function() {
+                return json_encode(array('preformatted' => 'i am!'));
+            });
         $this->assertArrayHasKey('preformatted', $response);
 
         // Test invalid url.
@@ -70,6 +73,7 @@ class local_obf_client_testcase extends advanced_testcase {
             0 + 0; // Suppressing PHP_CodeSniffer error messages.
         }
     }
+
     /**
      * Test Deauthentication.
      */

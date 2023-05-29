@@ -21,33 +21,32 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-$handlers = array(
-    /* Deprecated in 2.7 */
-);
+
+defined('MOODLE_INTERNAL') || die();
 
 $observers = array(
     array(
-        'eventname'   => '\core\event\course_completed',
-        'callback'    => 'local_obf_observer::course_completed',
+        'eventname' => '\core\event\course_completed',
+        'callback' => 'local_obf_observer::course_completed',
     ),
     array(
-        'eventname'   => '\core\event\course_module_completion_updated',
-        'callback'    => 'local_obf_observer::course_module_completion_updated',
+        'eventname' => '\core\event\course_module_completion_updated',
+        'callback' => 'local_obf_observer::course_module_completion_updated',
     ),
     array(
-        'eventname'   => '\core\event\course_deleted',
-        'callback'    => 'local_obf_observer::course_deleted',
+        'eventname' => '\core\event\course_deleted',
+        'callback' => 'local_obf_observer::course_deleted',
     ),
     array(
-        'eventname'   => 'core\event\user_updated',
-        'callback'    => 'local_obf_observer::profile_criteria_review',
+        'eventname' => 'core\event\user_updated',
+        'callback' => 'local_obf_observer::profile_criteria_review',
     ),
     array(
-        'eventname'   => '\core\event\course_reset_started',
-        'callback'    => 'local_obf_observer::course_reset_start'
+        'eventname' => '\core\event\course_reset_started',
+        'callback' => 'local_obf_observer::course_reset_start'
     ),
     array(
-        'eventname'   => '\totara_program\event\program_completed',
-        'callback'    => 'local_obf_observer::program_completed',
-    ),    
+        'eventname' => '\totara_program\event\program_completed',
+        'callback' => 'local_obf_observer::program_completed',
+    ),
 );

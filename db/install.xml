@@ -174,7 +174,7 @@
                 <FIELD NAME="client_secret" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
                 <FIELD NAME="client_name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
                 <FIELD NAME="obf_url" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
-                <FIELD NAME="access_token" TYPE="text" NOTNULL="true" SEQUENCE="false" />
+                <FIELD NAME="access_token" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
                 <FIELD NAME="token_expires" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false"/>
             </FIELDS>
             <KEYS>

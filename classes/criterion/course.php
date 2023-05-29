@@ -21,6 +21,19 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+namespace classes\criterion;
+
+use completion_completion;
+use completion_info;
+use context_course;
+use html_writer;
+use moodle_database;
+use MoodleQuickForm;
+use type;
+
+defined('MOODLE_INTERNAL') || die();
+
 require_once(__DIR__ . '/item_base.php');
 require_once(__DIR__ . '/criterion.php');
 require_once(__DIR__ . '/../badge.php');
@@ -38,18 +51,15 @@ class obf_criterion_course extends obf_criterion_item {
      */
     protected $grade = -1;
 
-
     /**
      * @var string For caching the name of the course
      */
     protected $coursename = '';
 
-
     /**
      * @var array[] Params cache.
      */
     protected $params = null;
-
 
     /**
      * Get the instance of this class by id.
@@ -78,7 +88,7 @@ class obf_criterion_course extends obf_criterion_item {
         global $DB;
 
         $records = $DB->get_records('local_obf_criterion_courses',
-                array('obf_criterion_id' => $criterion->get_id()));
+            array('obf_criterion_id' => $criterion->get_id()));
         $ret = array();
 
         foreach ($records as $record) {
@@ -111,7 +121,6 @@ class obf_criterion_course extends obf_criterion_item {
 
         return $this;
     }
-
 
     /**
      * Saves this course criterion to database. If it exists already, the
@@ -159,7 +168,7 @@ class obf_criterion_course extends obf_criterion_item {
 
         if (empty($this->coursename)) {
             $this->coursename = $DB->get_field('course', 'fullname',
-                    array('id' => $this->courseid));
+                array('id' => $this->courseid));
         }
 
         return $this->coursename;
@@ -167,6 +176,7 @@ class obf_criterion_course extends obf_criterion_item {
 
     /**
      * Get name.
+     *
      * @return string
      */
     public function get_name() {
@@ -183,13 +193,13 @@ class obf_criterion_course extends obf_criterion_item {
 
         if ($this->has_completion_date()) {
             $html .= ' ' . get_string('completedbycriterion', 'local_obf',
-                            userdate($this->completedby,
-                                    get_string('dateformatdate', 'local_obf')));
+                    userdate($this->completedby,
+                        get_string('dateformatdate', 'local_obf')));
         }
 
         if ($this->has_grade()) {
             $html .= ' ' . get_string('gradecriterion', 'local_obf',
-                            $this->grade);
+                    $this->grade);
         }
 
         return $html;
@@ -205,13 +215,13 @@ class obf_criterion_course extends obf_criterion_item {
 
         if ($this->has_completion_date()) {
             $html .= ' ' . get_string('completedbycriterion', 'local_obf',
-                            userdate($this->completedby,
-                                    get_string('dateformatdate', 'local_obf')));
+                    userdate($this->completedby,
+                        get_string('dateformatdate', 'local_obf')));
         }
 
         if ($this->has_grade()) {
             $html .= ' ' . get_string('gradecriterion', 'local_obf',
-                            $this->grade);
+                    $this->grade);
         }
 
         $html .= '.';
@@ -228,7 +238,7 @@ class obf_criterion_course extends obf_criterion_item {
         global $DB;
 
         $DB->delete_records('local_obf_criterion_courses', array('id' => $this->id));
-        obf_criterion::delete_empty($DB);
+        obf_criterion::delete_empty();
     }
 
     /**
@@ -240,24 +250,27 @@ class obf_criterion_course extends obf_criterion_item {
      * @param moodle_database $db The database instance
      */
     public static function delete_by_course(stdClass $course,
-            moodle_database $db) {
+        moodle_database $db) {
         // First delete criterion courses.
         $db->delete_records('local_obf_criterion_courses',
-                array('courseid' => $course->id));
+            array('courseid' => $course->id));
 
         // Then delete "empty" criteria (= criteria that don't have any related courses.
-        obf_criterion::delete_empty($db);
+        obf_criterion::delete_empty();
     }
 
     /**
      * Get grade.
+     *
      * @return mixed Grade
      */
     public function get_grade() {
         return $this->grade;
     }
+
     /**
      * Set grade.
+     *
      * @param mixed $grade
      * @return $this
      */
@@ -265,7 +278,6 @@ class obf_criterion_course extends obf_criterion_item {
         $this->grade = $grade;
         return $this;
     }
-
 
     /**
      * Reviews criteria for all applicaple users.
@@ -298,8 +310,10 @@ class obf_criterion_course extends obf_criterion_item {
         $extra[$this->get_id()] = 1;
         return $passingusers;
     }
+
     /**
      * Get params. Course items don't have params, but child classes might.
+     *
      * @return array
      */
     public function get_params() {
@@ -315,7 +329,7 @@ class obf_criterion_course extends obf_criterion_item {
         }
         $this->params = $params;
         return $params;
-    } 
+    }
 
     /**
      * Check if criterion item is ready to be saved for the first time,
@@ -325,22 +339,22 @@ class obf_criterion_course extends obf_criterion_item {
      */
     public function is_createable_with_params($request) {
         if ($this->get_criteriatype() == obf_criterion_item::CRITERIA_TYPE_COURSE && $this->has_courseid()) {
-            $request = (array)$request;
+            $request = (array) $request;
             if (array_key_exists('createitem', $request) && $request['createitem'] == 1) {
                 return true;
             }
         }
         if (property_exists($this, 'optionalparams') && property_exists($this, 'requiredparam')) {
-            $data = (array)$request;
+            $data = (array) $request;
             // Filter out empty params.
             $data = array_filter($data);
             // Get params matching required params.
             $match = array_merge($this->optionalparams, array($this->requiredparam));
             $regex = implode('|', array_map(
-                    function($a) {
-                        return $a .'_';
-                    }, $match));
-            $requiredkeys = preg_grep('/^('.$regex.').*$/', array_keys($data));
+                function($a) {
+                    return $a . '_';
+                }, $match));
+            $requiredkeys = preg_grep('/^(' . $regex . ').*$/', array_keys($data));
             $params = array();
             foreach ($requiredkeys as $key) {
                 $arr = explode('_', $key);
@@ -350,6 +364,7 @@ class obf_criterion_course extends obf_criterion_item {
         }
         return false;
     }
+
     /**
      * Save params. (activity selections and completedby dates)
      *
@@ -360,21 +375,21 @@ class obf_criterion_course extends obf_criterion_item {
         $this->save();
 
         if (!property_exists($this, 'optionalparams') || !property_exists($this, 'requiredparam')) {
-            error_log('No optionalparams or requiredparams, exiting. ' . var_export(get_class($this),true));
+            debugging('No optionalparams or requiredparams, exiting. ' . var_export(get_class($this), true));
             return;
         }
 
-        $params = (array)$data;
+        $params = (array) $data;
         // Filter out empty params.
         $params = array_filter($params);
         // Get params matching required params.
         $match = array_merge($this->optionalparams, array($this->requiredparam));
         $regex = implode('|', array_map(
-                function($a) {
-                    return $a .'_';
-                }, $match));
-        $requiredkeys = preg_grep('/^('.$regex.').*$/', array_keys($params));
-        
+            function($a) {
+                return $a . '_';
+            }, $match));
+        $requiredkeys = preg_grep('/^(' . $regex . ').*$/', array_keys($params));
+
         $paramtable = 'local_obf_criterion_params';
 
         $existing = $DB->get_fieldset_select($paramtable, 'name', 'obf_criterion_id = ?', array($this->get_criterionid()));
@@ -383,13 +398,13 @@ class obf_criterion_course extends obf_criterion_item {
         if (!empty($todelete)) {
             list($insql, $inparams) = $DB->get_in_or_equal($todelete, SQL_PARAMS_NAMED, 'cname', true);
             $inparams = array_merge($inparams, array('critid' => $this->get_criterionid()));
-            $DB->delete_records_select($paramtable, 'obf_criterion_id = :critid AND name '.$insql, $inparams );
+            $DB->delete_records_select($paramtable, 'obf_criterion_id = :critid AND name ' . $insql, $inparams);
         }
         foreach ($requiredkeys as $key) {
             if (in_array($key, $existing)) {
                 $toupdate = $DB->get_record($paramtable,
-                        array('obf_criterion_id' => $this->get_criterionid(),
-                                'name' => $key) );
+                    array('obf_criterion_id' => $this->get_criterionid(),
+                        'name' => $key));
                 $toupdate->value = $params[$key];
                 $DB->update_record($paramtable, $toupdate, true);
             } else {
@@ -401,8 +416,10 @@ class obf_criterion_course extends obf_criterion_item {
             }
         }
     }
+
     /**
      * Prints criteria course settings for criteria forms.
+     *
      * @param MoodleQuickForm& $mform
      * @param mixed& $obj Form object.
      */
@@ -414,7 +431,7 @@ class obf_criterion_course extends obf_criterion_item {
 
         // Minimum grade -field.
         $mform->addElement('text', 'mingrade[' . $courseid . ']',
-                get_string('minimumgrade', 'local_obf'));
+            get_string('minimumgrade', 'local_obf'));
 
         // Fun fact: Moodle would like the developer to call $mform->setType()
         // for every form element just in case and shows a E_NOTICE in logs
@@ -436,13 +453,14 @@ class obf_criterion_course extends obf_criterion_item {
         // Instead of returning an array like it should, $form->get_data()
         // returns something like array["completedby[60]"] which is fun.
         $mform->addElement('date_selector', 'completedby_' . $courseid . '',
-                get_string('coursecompletedby', 'local_obf'),
-                array('optional' => true, 'startyear' => date('Y')));
+            get_string('coursecompletedby', 'local_obf'),
+            array('optional' => true, 'startyear' => date('Y')));
 
         if ($this->has_completion_date()) {
             $mform->setDefault('completedby_' . $courseid, $completedby);
         }
     }
+
     /**
      * Prints required config fields for criteria forms.
      *
@@ -479,20 +497,21 @@ class obf_criterion_course extends obf_criterion_item {
             if ($itemcount > 1) {
                 $radiobuttons = array();
                 $radiobuttons[] = $mform->createElement('radio', 'completion_method', '',
-                        get_string('criteriacompletionmethodall', 'local_obf'),
-                        obf_criterion::CRITERIA_COMPLETION_ALL);
+                    get_string('criteriacompletionmethodall', 'local_obf'),
+                    obf_criterion::CRITERIA_COMPLETION_ALL);
                 $radiobuttons[] = $mform->createElement('radio', 'completion_method', '',
-                        get_string('criteriacompletionmethodany', 'local_obf'),
-                        obf_criterion::CRITERIA_COMPLETION_ANY);
+                    get_string('criteriacompletionmethodany', 'local_obf'),
+                    obf_criterion::CRITERIA_COMPLETION_ANY);
 
                 $mform->addElement('header', 'header_completion_method',
-                        get_string('criteriacompletedwhen', 'local_obf'));
+                    get_string('criteriacompletedwhen', 'local_obf'));
                 $obj->setExpanded($mform, 'header_completion_method');
                 $mform->addGroup($radiobuttons, 'radioar', '', '<br />', false);
                 $mform->setDefault('completion_method', $this->get_criterion()->get_completion_method());
             }
         }
     }
+
     /**
      * Prints after save options to form.
      *
@@ -503,16 +522,16 @@ class obf_criterion_course extends obf_criterion_item {
         global $OUTPUT;
         if ($this->show_review_options()) {
             $mform->addElement('header', 'header_review_criterion_after_save',
-                    get_string('reviewcriterionaftersave', 'local_obf'));
+                get_string('reviewcriterionaftersave', 'local_obf'));
             $obj->setExpanded($mform, 'header_review_criterion_after_save');
             $mform->addElement('html',
-                    $OUTPUT->notification(get_string('warningcannoteditafterreview', 'local_obf')));
+                $OUTPUT->notification(get_string('warningcannoteditafterreview', 'local_obf')));
             $mform->addElement('advcheckbox', 'reviewaftersave', get_string('reviewcriterionaftersave', 'local_obf'));
             $mform->addHelpButton('reviewaftersave', 'reviewcriterionaftersave', 'local_obf');
 
         }
     }
-    
+
     /**
      * Prints criteria addendum options to form.
      *
@@ -523,22 +542,20 @@ class obf_criterion_course extends obf_criterion_item {
         global $OUTPUT;
         if ($this->show_criteria_addendum_options()) {
             $mform->addElement('header', 'header_criteria_addendum',
-                    get_string('criteriaaddendumheader', 'local_obf'));
-            
+                get_string('criteriaaddendumheader', 'local_obf'));
+
             $criterion = $obj->get_criterion();
             $addendum = !empty($criterion) ? $criterion->get_criteria_addendum() : '';
             $useaddendum = !empty($criterion) ? $criterion->get_use_addendum() : false;
-            
+
             if (!empty($addendum)) {
                 $obj->setExpanded($mform, 'header_criteria_addendum');
             }
-            
+
             $mform->addElement('advcheckbox', 'addcriteriaaddendum', get_string('criteriaaddendumadd', 'local_obf'));
             $mform->addElement('textarea', 'criteriaaddendum', get_string('criteriaaddendum', 'local_obf'));
-            //$mform->setType('criteriaaddendum', PARAM_RAW);
             $mform->addHelpButton('criteriaaddendum', 'criteriaaddendum', 'local_obf');
             $mform->setDefaults(array('criteriaaddendum' => $addendum, 'addcriteriaaddendum' => $useaddendum));
-            //$mform->setDefaults(array('criteriaaddendum' => array('text' => $addendum, 'format' => FORMAT_MARKDOWN), 'addcriteriaaddendum' => $useaddendum));
         }
     }
 
@@ -550,23 +567,26 @@ class obf_criterion_course extends obf_criterion_item {
      */
     public function get_form_fields() {
         $fields = array(
-                'criteriatype' => PARAM_INT,
-                'course[]' => PARAM_RAW,
-                'completedby[]' => PARAM_RAW,
-                'mingrade[]' => PARAM_INT
+            'criteriatype' => PARAM_INT,
+            'course[]' => PARAM_RAW,
+            'completedby[]' => PARAM_RAW,
+            'mingrade[]' => PARAM_INT
         );
         if ($this->has_courseid()) {
-            $fields[] = 'completedby_'.$this->get_courseid();
+            $fields[] = 'completedby_' . $this->get_courseid();
         }
         return $fields;
     }
+
     /**
      * Course criteria do support multiple courses.
+     *
      * @return boolean false
      */
     public function criteria_supports_multiple_courses() {
         return true;
     }
+
     /**
      * Returns users related to this criteria.
      *
@@ -577,9 +597,10 @@ class obf_criterion_course extends obf_criterion_item {
         // The all users that are (and were?) enrolled to this course with
         // the capability of earning badges.
         $users = get_enrolled_users($context, 'local/obf:earnbadge', 0,
-                'u.id, u.email');
+            'u.id, u.email');
         return $users;
     }
+
     /**
      * Reviews criteria for single user.
      *
@@ -644,16 +665,19 @@ class obf_criterion_course extends obf_criterion_item {
 
         return $coursecompleted;
     }
+
     /**
      * To show review options or not?
+     *
      * @return bool True if options should be shown. False otherwise.
      */
     protected function show_review_options() {
         return $this->courseid != -1 && $this->criteriatype != self::CRITERIA_TYPE_UNKNOWN;
     }
-    
+
     /**
      * To show criteria addendum options or not?
+     *
      * @return bool True if options should be shown. False otherwise.
      */
     protected function show_criteria_addendum_options() {

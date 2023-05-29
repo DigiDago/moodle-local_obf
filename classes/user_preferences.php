@@ -22,6 +22,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace classes;
+use Some;
+use The;
+use User;
+use What;
+
 /**
  * User preferences -class.
  *
@@ -54,13 +60,14 @@ class obf_user_preferences {
      * @var $optionalpreferences What may be defined in preferences.
      */
     private $optionalpreferences = array('openbadgepassport');
-    
+
     const USERS_CAN_MANAGE_DISPLAY_OF_BADGES = 0;
     const USERS_FORCED_TO_DISPLAY_BADGES = 1;
     const USERS_NOT_ALLOWED_TO_DISPLAY_BADGES = 2;
 
     /**
      * Constructor.
+     *
      * @param int $userid
      */
     public function __construct($userid) {
@@ -70,6 +77,7 @@ class obf_user_preferences {
 
     /**
      * Get a single preference for $userid
+     *
      * @param int $userid
      * @param string $preference
      * @return mixed Preference to be used.
@@ -77,14 +85,16 @@ class obf_user_preferences {
     public static function get_user_preference($userid, $preference) {
         global $DB;
         $record = $DB->get_record('local_obf_user_preferences', array('user_id' => $userid,
-                'name' => $preference));
+            'name' => $preference));
         if ($record) {
             return $record->value;
         }
         return self::get_default($preference);
     }
+
     /**
      * Get a single preference.
+     *
      * @param string $preference
      * @return mixed Preference to be used.
      */
@@ -95,8 +105,10 @@ class obf_user_preferences {
         }
         return self::get_default($preference);
     }
+
     /**
      * Get the default preference.
+     *
      * @param string $preference
      * @return mixed Preference to be used.
      */
@@ -115,15 +127,19 @@ class obf_user_preferences {
     public function get_userid() {
         return $this->userid;
     }
+
     /**
      * Does the object exist in the database?
+     *
      * @return bool True if saved to the database.
      */
     public function exists() {
         return $this->indb;
     }
+
     /**
      * Get all preferences.
+     *
      * @param bool $force Force loading of preferences from the database.
      * @return array The preferences.
      */
@@ -149,8 +165,10 @@ class obf_user_preferences {
         $this->preferences = $preferences;
         return $this->preferences;
     }
+
     /**
      * Set a user pref.
+     *
      * @param string $name
      * @param string $value
      * @return $this
@@ -159,6 +177,7 @@ class obf_user_preferences {
         $this->preferences[$name] = $value;
         return $this;
     }
+
     /**
      * Add an array of preferences to existing preferences.
      *
@@ -166,31 +185,35 @@ class obf_user_preferences {
      */
     public function add_preferences($data) {
         $prefs = $this->get_preferences();
-        $prefs = array_merge($prefs, (array)$data);
+        $prefs = array_merge($prefs, (array) $data);
         return $this->save_preferences($prefs);
     }
+
     /**
      * Save.
+     *
      * @see self::save_preferences
      */
     public function save() {
         $prefs = $this->get_preferences();
         $this->save_preferences($prefs);
     }
+
     /**
      * Save params. (activity selections and completedby dates)
+     *
      * @param array|stdClass $data
      */
     public function save_preferences($data) {
         global $DB;
-        $preferences = (array)$data;
+        $preferences = (array) $data;
 
         $match = array_merge($this->optionalpreferences, $this->requiredpreferences);
         $regex = implode('|', array_map(
-                function($a) {
-                    return $a;
-                }, $match));
-        $requiredkeys = preg_grep('/^('.$regex.')$/', array_keys($preferences));
+            function($a) {
+                return $a;
+            }, $match));
+        $requiredkeys = preg_grep('/^(' . $regex . ')$/', array_keys($preferences));
 
         $preftable = 'local_obf_user_preferences';
 
@@ -200,13 +223,13 @@ class obf_user_preferences {
         if (!empty($todelete)) {
             list($insql, $inparams) = $DB->get_in_or_equal($todelete, SQL_PARAMS_NAMED, 'cname', true);
             $inparams = array_merge($inparams, array('userid' => $this->userid));
-            $DB->delete_records_select($preftable, 'user_id = :userid AND name '.$insql, $inparams );
+            $DB->delete_records_select($preftable, 'user_id = :userid AND name ' . $insql, $inparams);
         }
         foreach ($requiredkeys as $key) {
             if (in_array($key, $existing)) {
                 $toupdate = $DB->get_record($preftable,
-                        array('user_id' => $this->userid,
-                                'name' => $key) );
+                    array('user_id' => $this->userid,
+                        'name' => $key));
                 $toupdate->value = $preferences[$key];
                 $DB->update_record($preftable, $toupdate, true);
                 $this->set_preference($key, $preferences[$key]);

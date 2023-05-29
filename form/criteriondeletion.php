@@ -21,9 +21,11 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') or die();
+
+defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/obfform.php');
+
 /**
  * Criterion deletion form.
  *

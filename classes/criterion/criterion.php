@@ -21,6 +21,21 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+namespace classes\criterion;
+
+use cache_helper;
+use classes\obf_backpack;
+use classes\obf_badge;
+use classes\obf_client;
+use classes\obf_email;
+use classes\obf_issue_event;
+use completion_completion;
+use completion_info;
+use moodle_database;
+
+defined('MOODLE_INTERNAL') || die();
+
 global $CFG;
 
 require_once(__DIR__ . '/../badge.php');
@@ -88,17 +103,16 @@ class obf_criterion {
      * @var bool Use criteria addendum
      */
     private $useaddendum = false;
-    
+
     /**
      * @var string The criteria addendum
      */
     private $criteriaaddendum = '';
-    
+
     /**
      * @var stdClass[] A simple cache for Moodle's courses.
      */
     private static $coursecache = array();
-    
 
     /**
      * Returns the criterion instance identified by $id
@@ -121,7 +135,7 @@ class obf_criterion {
         $obj->set_id($record->id);
         $obj->set_completion_method($record->completion_method);
         $obj->set_criteria_addendum($record->addendum);
-        $obj->set_use_addendum((bool)$record->use_addendum);
+        $obj->set_use_addendum((bool) $record->use_addendum);
 
         return $obj;
     }
@@ -188,7 +202,7 @@ class obf_criterion {
         global $DB;
 
         return ($DB->count_records('local_obf_criterion_met',
-                        array('obf_criterion_id' => $this->id)) > 0);
+                array('obf_criterion_id' => $this->id)) > 0);
     }
 
     /**
@@ -210,8 +224,7 @@ class obf_criterion {
 
         try {
             $badge = $this->get_badge();
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return;
         }
         if (!isset($badge)) {
@@ -262,16 +275,19 @@ class obf_criterion {
     /**
      * Deletes all criteria from the database that don't have any
      * related courses.
+     *
      * @param moodle_database $db
      */
-    public static function delete_empty(moodle_database $db) {
+    public static function delete_empty() {
+        global $DB;
+
         $subquery = 'SELECT obf_criterion_id FROM {local_obf_criterion_courses}';
-        $db->delete_records_select('local_obf_criterion',
-                'id NOT IN (' . $subquery . ')');
-        $db->delete_records_select('local_obf_criterion_params',
-                'obf_criterion_id NOT IN (' . $subquery .')');
-        $db->delete_records_select('local_obf_criterion_met',
-                'obf_criterion_id NOT IN (' . $subquery . ')');
+        $DB->delete_records_select('local_obf_criterion',
+            'id NOT IN (' . $subquery . ')');
+        $DB->delete_records_select('local_obf_criterion_params',
+            'obf_criterion_id NOT IN (' . $subquery . ')');
+        $DB->delete_records_select('local_obf_criterion_met',
+            'obf_criterion_id NOT IN (' . $subquery . ')');
     }
 
     /**
@@ -283,7 +299,7 @@ class obf_criterion {
 
         if ($this->exists()) {
             $DB->delete_records('local_obf_criterion_met',
-                    array('obf_criterion_id' => $this->id));
+                array('obf_criterion_id' => $this->id));
         }
     }
 
@@ -294,9 +310,9 @@ class obf_criterion {
     public function delete_items() {
         global $DB;
         $DB->delete_records('local_obf_criterion_courses',
-                array('obf_criterion_id' => $this->id));
+            array('obf_criterion_id' => $this->id));
         $DB->delete_records('local_obf_criterion_params',
-                array('obf_criterion_id' => $this->id));
+            array('obf_criterion_id' => $this->id));
         $this->items = array();
     }
 
@@ -327,21 +343,24 @@ class obf_criterion {
 
         if ($criteriatype != obf_criterion_item::CRITERIA_TYPE_ANY) {
             return array_filter($this->items,
-                    function (obf_criterion_item $i) use ($criteriatype) {
-                        return ($i->get_criteriatype() == $criteriatype);
-                    });
+                function(obf_criterion_item $i) use ($criteriatype) {
+                    return ($i->get_criteriatype() == $criteriatype);
+                });
         }
 
         return $this->items;
     }
+
     /**
      * Set items. (Does not save)
+     *
      * @param obf_criterion_item[] $items Array of items
      */
     public function set_items($items) {
         $this->items = $items;
         return $this;
     }
+
     /**
      * Set course criterions for this criterion.
      *
@@ -430,8 +449,8 @@ class obf_criterion {
      */
     public static function get_course_criterion($courseid) {
         $where = 'c.id IN (SELECT obf_criterion_id '
-                . 'FROM {local_obf_criterion_courses} '
-                . 'WHERE courseid = ' . intval($courseid) . ')';
+            . 'FROM {local_obf_criterion_courses} '
+            . 'WHERE courseid = ' . intval($courseid) . ')';
         return self::get_criteria($where);
     }
 
@@ -445,7 +464,8 @@ class obf_criterion {
         $where = 'c.id IN (SELECT cp.obf_criterion_id
         FROM {local_obf_criterion_params} cp
         INNER JOIN {local_obf_criterion_courses} cou ON cp.obf_criterion_id = cou.obf_criterion_id
-        WHERE (cou.criteria_type= ' . obf_criterion_item::CRITERIA_TYPE_TOTARA_PROGRAM . ' OR cou.criteria_type= ' . obf_criterion_item::CRITERIA_TYPE_TOTARA_CERTIF . ')
+        WHERE (cou.criteria_type= ' . obf_criterion_item::CRITERIA_TYPE_TOTARA_PROGRAM . ' OR cou.criteria_type= ' .
+            obf_criterion_item::CRITERIA_TYPE_TOTARA_CERTIF . ')
         AND cp.value = ' . intval($programid) . ')';
 
         return self::get_criteria($where);
@@ -460,9 +480,16 @@ class obf_criterion {
     public static function get_criteria($conditions = '') {
         global $DB;
 
-        $sql = 'SELECT cc.*, c.id AS criterionid, ' .
-                'c.badge_id, c.client_id, c.completion_method AS crit_completion_method, c.use_addendum, c.addendum FROM {local_obf_criterion_courses} cc ' .
-                'LEFT JOIN {local_obf_criterion} c ON cc.obf_criterion_id = c.id';
+        $sql = 'SELECT
+                    cc.*,
+                    c.id AS criterionid,
+                    c.badge_id,
+                    c.client_id,
+                    c.completion_method AS crit_completion_method,
+                    c.use_addendum,
+                    c.addendum
+                FROM {local_obf_criterion_courses} cc
+                 LEFT JOIN {local_obf_criterion} c ON cc.obf_criterion_id = c.id';
         $params = array();
         $cols = array();
 
@@ -512,7 +539,7 @@ class obf_criterion {
         global $DB;
 
         return ($DB->count_records('local_obf_criterion_met',
-                        array('obf_criterion_id' => $this->id,
+                array('obf_criterion_id' => $this->id,
                     'user_id' => $user->id)) > 0);
     }
 
@@ -540,8 +567,7 @@ class obf_criterion {
     public function get_badge() {
         try {
             $client = obf_client::connect($this->get_clientid(), '*');
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
 
@@ -601,7 +627,7 @@ class obf_criterion {
 
         foreach ($criterioncourses as $crit) {
             $reviewresult = $crit->review($this, $criterioncourses,
-                    $selfreviewextra);
+                $selfreviewextra);
 
             if (count($selfreviewusers) == 0 || !$requireall) {
                 $selfreviewusers = array_merge($selfreviewusers, $reviewresult);
@@ -714,7 +740,7 @@ class obf_criterion {
      * @return boolean If the course criterion is completed by the user.
      */
     protected function review_course(obf_criterion_course $criterioncourse,
-            $userid) {
+        $userid) {
         global $DB;
 
         $courseid = $criterioncourse->get_courseid();
@@ -787,12 +813,11 @@ class obf_criterion {
             $criterioncourses = $this->get_items(true);
         }
 
-        # TODO allow multiple programs
-        //$requireall = $this->get_completion_method() == self::CRITERIA_COMPLETION_ALL;
+        // TODO allow multiple programs.
 
         $criterioncompleted = false;
 
-        foreach ($criterioncourses as $criterioncourse) { 
+        foreach ($criterioncourses as $criterioncourse) {
             $coursecompleted = $this->review_program($criterioncourse, $userid, $programid);
 
             if ($coursecompleted) {
@@ -803,23 +828,23 @@ class obf_criterion {
         }
 
         return $criterioncompleted;
-    }   
+    }
 
     protected function review_program(obf_criterion_totaraprogram $criterionprogram, $userid, $programid) {
 
         global $DB;
 
         $datepassed = false;
-    
+
         $query = "SELECT timecompleted FROM {prog_completion} WHERE programid = ? AND userid = ? LIMIT 1 ";
-        $program_completed = $DB->get_records_sql($query, array($programid, $userid)); 
-        $completedat = reset($program_completed);
+        $programcompleted = $DB->get_records_sql($query, array($programid, $userid));
+        $completedat = reset($programcompleted);
         $completiondate = $completedat->timecompleted;
 
         // Check completion date.
 
         if ($criterionprogram->has_completion_date()) {
-  
+
             if ($completiondate <= $criterionprogram->get_completedby()) {
                 $datepassed = true;
             }
@@ -842,22 +867,28 @@ class obf_criterion {
         $this->client_id = $badge->get_client_id();
         return $this;
     }
+
     /**
      * Get id.
+     *
      * @return mixed
      */
     public function get_id() {
         return $this->id;
     }
+
     /**
      * Get completion method.
+     *
      * @return int
      */
     public function get_completion_method() {
         return $this->completionmethod;
     }
+
     /**
      * Set id
+     *
      * @param int $id
      * @return $this
      */
@@ -865,19 +896,23 @@ class obf_criterion {
         $this->id = $id;
         return $this;
     }
+
     /**
      * Add obf_criterion_item to list of items.
+     *
      * @param obf_criterion_item $item
      */
     public function add_criterion_item(obf_criterion_item $item) {
         $this->items[] = $item;
     }
+
     /**
      * Set completion method.
+     *
      * @param int $completionmethod
-     * @see self::CRITERIA_COMPLETION_ALL
-     * @see self::CRITERIA_COMPLETION_ANY
      * @return $this
+     * @see self::CRITERIA_COMPLETION_ANY
+     * @see self::CRITERIA_COMPLETION_ALL
      */
     public function set_completion_method($completionmethod) {
         $this->completionmethod = $completionmethod;
@@ -886,13 +921,16 @@ class obf_criterion {
 
     /**
      * Get badge id.
+     *
      * @return mixed Badge id
      */
     public function get_badgeid() {
         return (empty($this->badgeid) ? $this->get_badge()->get_id() : $this->badgeid);
     }
+
     /**
      * Set badge id
+     *
      * @param mixed $badgeid
      * @return $this
      */
@@ -903,6 +941,7 @@ class obf_criterion {
 
     /**
      * Get client id.
+     *
      * @return mixed Client id
      */
     public function get_clientid() {
@@ -911,12 +950,14 @@ class obf_criterion {
             $this->clientid = $DB->get_field('local_obf_criterion', 'client_id', array('id' => $this->get_id()));
         }
         if (empty($this->clientid)) {
-            $this->clientid = get_config('local_obf', 'obfclientid'); //legacy client id
+            $this->clientid = get_config('local_obf', 'obfclientid'); // Legacy client id.
         }
         return $this->clientid;
     }
+
     /**
      * Set client id
+     *
      * @param mixed $client
      * @return $this
      */
@@ -959,12 +1000,13 @@ class obf_criterion {
                     $ret[] = $obj;
                 } else {
                     debugging('Criteria with badge_id: ' . $obj->get_badgeid() .
-                            ' caused an error, possible connection issue. Error code: '. $client->get_http_code());
+                        ' caused an error, possible connection issue. Error code: ' . $client->get_http_code());
                 }
             }
         }
         return $ret;
     }
+
     public function get_use_addendum() {
         return $this->useaddendum;
     }

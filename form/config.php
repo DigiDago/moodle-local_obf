@@ -21,11 +21,14 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') or die();
+
+defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/obfform.php');
+
 /**
  * Plugin config / Authentication form.
+ *
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -46,14 +49,14 @@ class obf_config_form extends local_obf_form_base implements renderable {
         $formdata = $this->get_data();
         if ($errorcode === -1) {
             $expires = userdate($client->get_certificate_expiration_date(),
-                    get_string('dateformatdate', 'local_obf'));
+                get_string('dateformatdate', 'local_obf'));
             $mform->addElement('html',
-                    $OUTPUT->notification(get_string('connectionisworking',
-                                    'local_obf', $expires), 'notifysuccess'));
+                $OUTPUT->notification(get_string('connectionisworking',
+                    'local_obf', $expires), 'notifysuccess'));
             $mform->addElement('hidden', 'deauthenticate', 1);
             $mform->setType('deauthenticate', PARAM_INT);
             $mform->addElement('submit', 'submitbutton',
-                    get_string('deauthenticate', 'local_obf'));
+                get_string('deauthenticate', 'local_obf'));
         } else { // Connection is not working.
 
             // We get error code 0 if pinging the API fails (like if the keyfiles
@@ -61,22 +64,22 @@ class obf_config_form extends local_obf_form_base implements renderable {
             // error to admin, so let's do that by changing the error code.
             $errorcode = $errorcode == 0 ? OBF_API_CODE_NO_CERT : $errorcode;
             $mform->addElement('html',
-                    $OUTPUT->notification(get_string('apierror' . $errorcode,
-                                    'local_obf'), 'redirectmessage'));
+                $OUTPUT->notification(get_string('apierror' . $errorcode,
+                    'local_obf'), 'redirectmessage'));
             $urlgroup = array();
             $urlgroup[] =& $mform->createElement('text', 'url');
             $urlgroup[] =& $mform->createElement('checkbox', 'availablefromenabled', '', get_string('edit', 'local_obf'));
-            $mform->addGroup($urlgroup, 'urlgroup',  get_string('urlgroup', 'local_obf'), ' ', false);
+            $mform->addGroup($urlgroup, 'urlgroup', get_string('urlgroup', 'local_obf'), ' ', false);
             $mform->disabledIf('urlgroup', 'availablefromenabled');
-            $mform->setType('url',  PARAM_TEXT);
+            $mform->setType('url', PARAM_TEXT);
             $mform->setDefault('url', $url);
             $mform->addHelpButton('urlgroup', 'urlgroup', 'local_obf');;
             $mform->addElement('textarea', 'obftoken',
-                    get_string('requesttoken', 'local_obf'), array('rows' => 10));
+                get_string('requesttoken', 'local_obf'), array('rows' => 10));
             $mform->addHelpButton('obftoken', 'requesttoken', 'local_obf');
             $buttonarray = array(
                 $mform->createElement('submit', 'submitbutton',
-                        get_string('authenticate', 'local_obf')));
+                    get_string('authenticate', 'local_obf')));
             $mform->addGroup($buttonarray, 'buttonar', '', array(' '), false);
 
         }

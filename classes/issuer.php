@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace classes;
 /**
  * Badge issuer -class.
  *
@@ -59,7 +60,7 @@ class obf_issuer {
      * @var string The organization name of the issuer.
      */
     private $organization = '';
-    
+
     private static $defaultissuer = null;
 
     /**
@@ -80,15 +81,15 @@ class obf_issuer {
     public static function get_instance_from_arr($arr) {
         return self::get_instance()->populate_from_array($arr);
     }
-    
+
     /**
      * Returns a new obf_issuer instance created from a moodle badge stdClass object.
      *
-     * @param stdClass $moodle_badge An stdClass with the issuer data.
+     * @param stdClass $moodlebadge An stdClass with the issuer data.
      * @return obf_issuer The issuer instance.
      */
-    public static function get_instance_from_moodle_badge($moodle_badge) {
-        return self::get_instance()->populate_from_moodle_badge($moodle_badge);
+    public static function get_instance_from_moodle_badge($moodlebadge) {
+        return self::get_instance()->populate_from_moodle_badge($moodlebadge);
     }
 
     /**
@@ -116,7 +117,7 @@ class obf_issuer {
 
         return $issuer;
     }
-    
+
     public static function get_default_issuer($client) {
         if (!is_null(self::$defaultissuer)) {
             return self::$defaultissuer;
@@ -125,7 +126,6 @@ class obf_issuer {
         return self::$defaultissuer;
     }
 
-    
     /**
      * Populates this instance with the data from the array.
      *
@@ -137,15 +137,15 @@ class obf_issuer {
         $this->set_email($arr['email'])->set_url($arr['url'])->set_name($arr['name']);
         return $this;
     }
-    
+
     /**
      * Populates this instance with the data from the moodle badge stdClass.
      *
-     * @param stdClass $moodle_badge The issuer data.
+     * @param stdClass $moodlebadge The issuer data.
      * @return obf_issuer Returns this instance.
      */
-    public function populate_from_moodle_badge($moodle_badge) {
-        $this->set_email($moodle_badge->issuercontact)->set_url($moodle_badge->issuerurl)->set_name($moodle_badge->issuername);
+    public function populate_from_moodle_badge($moodlebadge) {
+        $this->set_email($moodlebadge->issuercontact)->set_url($moodlebadge->issuerurl)->set_name($moodlebadge->issuername);
         return $this;
     }
 
@@ -166,6 +166,7 @@ class obf_issuer {
 
     /**
      * Get id
+     *
      * @return int
      */
     public function get_id() {
@@ -174,6 +175,7 @@ class obf_issuer {
 
     /**
      * Set id.
+     *
      * @param int $id
      * @return $this
      */
@@ -184,6 +186,7 @@ class obf_issuer {
 
     /**
      * Get name.
+     *
      * @return string Name
      */
     public function get_name() {
@@ -192,6 +195,7 @@ class obf_issuer {
 
     /**
      * Set name.
+     *
      * @param string $name
      * @return $this
      */
@@ -202,6 +206,7 @@ class obf_issuer {
 
     /**
      * Get description.
+     *
      * @return string Description
      */
     public function get_description() {
@@ -210,6 +215,7 @@ class obf_issuer {
 
     /**
      * Set Description.
+     *
      * @param string $description
      */
     public function set_description($description) {
@@ -219,6 +225,7 @@ class obf_issuer {
 
     /**
      * Get email.
+     *
      * @return string Email
      */
     public function get_email() {
@@ -227,6 +234,7 @@ class obf_issuer {
 
     /**
      * Set email.
+     *
      * @param string $email
      */
     public function set_email($email) {
@@ -236,6 +244,7 @@ class obf_issuer {
 
     /**
      * Get URL.
+     *
      * @return string
      */
     public function get_url() {
@@ -244,6 +253,7 @@ class obf_issuer {
 
     /**
      * Set URL.
+     *
      * @param string $url
      */
     public function set_url($url) {
@@ -253,6 +263,7 @@ class obf_issuer {
 
     /**
      * Get organization.
+     *
      * @return mixed Organization
      */
     public function get_organization() {
@@ -261,6 +272,7 @@ class obf_issuer {
 
     /**
      * Set organization.
+     *
      * @param mixed $organization
      */
     public function set_organization($organization) {

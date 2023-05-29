@@ -22,13 +22,15 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use classes\obf_backpack;
+use classes\obf_user_email;
+
 define('AJAX_SCRIPT', true);
 
 require_once(__DIR__ . '/../../config.php');
-require_once(__DIR__ . '/class/backpack.php');
+require_once(__DIR__ . '/classes/backpack.php');
 require_once($CFG->libdir . '/filelib.php');
-require_once(__DIR__ . '/class/user_email.php');
-
+require_once(__DIR__ . '/classes/user_email.php');
 
 require_login();
 $usercontext = context_user::instance($USER->id);
@@ -66,7 +68,8 @@ function parse_json_assertion($assertion) {
         throw $e;
     }
 }
-switch($action) {
+
+switch ($action) {
     case 'persona':
         try {
             $email = $backpack->verify($assertion);
@@ -107,7 +110,7 @@ switch($action) {
                 $status = true;
                 $return['verified'] = true;
             }
-            $return['status'] = (bool)$status;
+            $return['status'] = (bool) $status;
         } catch (Exception $e) {
             $return['error'] = $e->getMessage();
         }
@@ -121,7 +124,7 @@ switch($action) {
             } else {
                 $status = false;
             }
-            $return['status'] = (bool)$status;
+            $return['status'] = (bool) $status;
         } catch (Exception $e) {
             $return['message'] = $e->getMessage();
         }

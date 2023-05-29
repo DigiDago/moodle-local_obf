@@ -22,8 +22,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use classes\criterion\obf_criterion;
+use classes\obf_assertion;
+use classes\obf_badge;
+use classes\obf_client;
+use classes\obf_email;
+
 require_once(__DIR__ . '/../../config.php');
-require_once(__DIR__ . '/class/badge.php');
+require_once(__DIR__ . '/classes/badge.php');
 require_once($CFG->libdir . '/adminlib.php');
 
 $clientid = optional_param('clientid', null, PARAM_ALPHANUM);
@@ -69,32 +75,32 @@ switch ($action) {
         require_capability('local/obf:viewhistory', $context);
         try {
 
-            $curr_page = optional_param('page', 0, PARAM_INT);
+            $currpage = optional_param('page', 0, PARAM_INT);
 
             $client = obf_client::get_instance();
 
-            $search_params = array(
+            $searchparams = array(
                 'api_consumer_id' => OBF_API_CONSUMER_ID,
                 'count_only' => 1
             );
-            $res = $client->get_assertions(null, null, $search_params);
+            $res = $client->get_assertions(null, null, $searchparams);
 
             $historysize = $res[0]['result_count'];
 
-            $search_params['count_only'] = 0;
-            $search_params['limit'] = 10;
-            $search_params['offset'] = $curr_page * 10;
-            $search_params['order_by'] = 'asc';
+            $searchparams['count_only'] = 0;
+            $searchparams['limit'] = 10;
+            $searchparams['offset'] = $currpage * 10;
+            $searchparams['order_by'] = 'asc';
 
-            $history = obf_assertion::get_assertions($client, null, null, -1, false, $search_params);
+            $history = obf_assertion::get_assertions($client, null, null, -1, false, $searchparams);
 
             $content .= $PAGE->get_renderer('local_obf')->render_client_selector($url, $clientid);
-            $content .= $PAGE->get_renderer('local_obf')->print_issuing_history($client, $context, $historysize, $curr_page, $history);
+            $content .= $PAGE->get_renderer('local_obf')
+                ->print_issuing_history($client, $context, $historysize, $currpage, $history);
         } catch (Exception $e) {
             $content .= $OUTPUT->notification($e->getMessage());
         }
         break;
-
 
     // Show the list of badges.
     case 'list':
@@ -107,10 +113,10 @@ switch ($action) {
 
             if ($context instanceof context_system) {
                 $content .= $PAGE->get_renderer('local_obf')->render_badgelist($badges,
-                        $hasissuecapability, $context, $message);
+                    $hasissuecapability, $context, $message);
             } else {
                 $content .= $PAGE->get_renderer('local_obf')->render_badgelist_course($badges,
-                        $hasissuecapability, $context, $message);
+                    $hasissuecapability, $context, $message);
             }
         } catch (Exception $e) {
             $content .= $OUTPUT->notification($e->getMessage(), 'notifyproblem');
@@ -130,7 +136,7 @@ switch ($action) {
         $page = optional_param('page', 0, PARAM_INT);
         $show = optional_param('show', 'details', PARAM_ALPHANUM);
         $badgeurl = new moodle_url('/local/obf/badge.php',
-                array('action' => 'show', 'id' => $badgeid, 'clientid' => $clientid));
+            array('action' => 'show', 'id' => $badgeid, 'clientid' => $clientid));
 
         if ($context instanceof context_system) {
             navigation_node::override_active_url(
@@ -148,7 +154,7 @@ switch ($action) {
 
         $renderer = $PAGE->get_renderer('local_obf', 'badge');
         $content .= $PAGE->get_renderer('local_obf')->render_badge_heading($badge,
-                $context);
+            $context);
 
         switch ($show) {
             // Email template.
@@ -156,16 +162,11 @@ switch ($action) {
                 require_capability('local/obf:configure', $context);
 
                 $emailurl = new moodle_url(
-                        '/local/obf/badge.php', array('id' => $badge->get_id(),
+                    '/local/obf/badge.php', array('id' => $badge->get_id(),
                     'action' => 'show', 'show' => 'email', 'clientid' => $clientid));
 
-                /*
-                $PAGE->navbar->add(
-                        get_string('badgeemail', 'local_obf'), $emailurl);
-                 */
-
                 $form = new obf_email_template_form(
-                        $emailurl, array('badge' => $badge));
+                    $emailurl, array('badge' => $badge));
                 $html = '';
 
                 if (!empty($message)) {
@@ -185,7 +186,7 @@ switch ($action) {
 
                     $redirecturl = clone $emailurl;
                     $redirecturl->param(
-                            'msg', get_string('emailtemplatesaved', 'local_obf'));
+                        'msg', get_string('emailtemplatesaved', 'local_obf'));
 
                     redirect($redirecturl);
                 }
@@ -199,31 +200,19 @@ switch ($action) {
                 $taburl = clone $badgeurl;
                 $taburl->param('show', $show);
 
-                /*
-                if ($context instanceof context_system) {
-                    $PAGE->navbar->add(
-                            get_string('badge' . $show, 'local_obf'), $taburl);
-                }
-                 */
-
                 $content .= $PAGE->get_renderer('local_obf')->page_badgedetails(
-                        $client, $badge, $context, $show, $page, $message);
+                    $client, $badge, $context, $show, $page, $message);
 
                 $content .= $PAGE->get_renderer('local_obf')->issue_button($badge, $context);
 
-
                 break;
 
-            // Badge criteria.
             case 'criteria':
-                $content .= $PAGE->get_renderer('local_obf')->page_badgedetails(
-                        $client, $badge, $context, $show, $page, $message);
-                break;
-
-            // Badge issuance history.
+                // Badge criteria.
             case 'history':
+                // Badge issuance history.
                 $content .= $PAGE->get_renderer('local_obf')->page_badgedetails(
-                        $client, $badge,  $context, $show, $page, $message);
+                    $client, $badge, $context, $show, $page, $message);
                 break;
 
         }

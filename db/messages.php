@@ -21,7 +21,9 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 defined('MOODLE_INTERNAL') || die();
-$messageproviders = array (
+
+$messageproviders = array(
     'revoked' => array()
 );

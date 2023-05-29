@@ -21,8 +21,28 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-require_once(__DIR__ . '/assertion.php');
-require_once(__DIR__ . '/assertion_collection.php');
+
+namespace classes;
+
+use API;
+use Associative;
+use Backpack;
+use cache_helper;
+use curl;
+use Email;
+use Id;
+use moodle_database;
+use Mozilla;
+use Open;
+use Provider;
+use Transport;
+use type;
+use Userid;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/obf_assertion.php');
+require_once(__DIR__ . '/obfassertioncollection.php');
 
 /**
  * Class for handling the communication between the plugin and Mozilla Backpack.
@@ -73,7 +93,7 @@ class obf_backpack {
     /**
      * @var List or groups to display.
      */
-    private $badge_groups = array();
+    private $badgegroups = array();
     /**
      * @var Transport.
      */
@@ -83,44 +103,40 @@ class obf_backpack {
      */
     private $provider = 0;
 
-
     /**
      * @var Array of provider ids.
      */
     private static $providers = array(self::BACKPACK_PROVIDER_MOZILLA,
-            self::BACKPACK_PROVIDER_OBP);
+        self::BACKPACK_PROVIDER_OBP);
     /**
      * @var Array of provider name shortened for use as pre-/postfixes on forms and localisations.
      */
-    private static $providershortnames = array(
-    );
+    private static $providershortnames = array();
 
     /**
      * @var Array of provider fullnames for use on forms and localisations.
      */
-    private static $providerfullnames = array(
-    );
+    private static $providerfullnames = array();
     /**
      * @var API urls as array.
      */
-    private static $apiurls = array(
-    );
+    private static $apiurls = array();
 
     /**
      * @var Array of settings on should email address verification be used,
      *      or should we assume moodle email is configured at the backpack provider.
      */
-    private static $providerrequiresemailverification = array(
-    );
+    private static $providerrequiresemailverification = array();
     /**
      * DEPRECATED - Ids should now match on assertion and backpack.
+     *
      * @var Associative array to match provider ids to assertion source ids.
      */
-    private static $backpackprovidersources = array(
-    );
+    private static $backpackprovidersources = array();
 
     /**
      * Constructor.
+     *
      * @param curl|null $transport
      * @param int $provider
      */
@@ -143,17 +159,19 @@ class obf_backpack {
             self::$apiurls = array();
             global $DB;
             $records = $DB->get_records('local_obf_backpack_sources');
-            foreach($records as $key => $record) {
+            foreach ($records as $key => $record) {
                 self::$providers[] = $record->id;
                 self::$providershortnames[$record->id] = $record->shortname;
                 self::$providerfullnames[$record->id] = $record->fullname;
                 self::$apiurls[$record->id] = $record->url;
-                self::$providerrequiresemailverification[$record->id] = (bool)$record->configureableaddress;
+                self::$providerrequiresemailverification[$record->id] = (bool) $record->configureableaddress;
             }
         }
     }
+
     /**
      * Get API URL.
+     *
      * @return string API URL.
      */
     public function get_apiurl() {
@@ -163,8 +181,10 @@ class obf_backpack {
         }
         return array_key_exists(self::get_default_provider(), self::$apiurls) ? self::$apiurls[self::get_default_provider()] : '';
     }
+
     /**
      * Get site url URL.
+     *
      * @return string API URL.
      */
     public function get_siteurl() {
@@ -172,10 +192,11 @@ class obf_backpack {
         if (!empty($this->provider)) {
             $apiurl = self::$apiurls[$this->provider];
         } else {
-            $apiurl = array_key_exists(self::get_default_provider(), self::$apiurls) ? self::$apiurls[self::get_default_provider()] : '';
+            $apiurl =
+                array_key_exists(self::get_default_provider(), self::$apiurls) ? self::$apiurls[self::get_default_provider()] : '';
         }
         $parts = parse_url($apiurl);
-        $siteurl = $parts['scheme'] . '://'.$parts['host'];
+        $siteurl = $parts['scheme'] . '://' . $parts['host'];
         return $siteurl;
     }
 
@@ -207,7 +228,7 @@ class obf_backpack {
         global $DB;
         $fields = array_merge($fields, array('backpack_provider' => $provider));
         $backpackobj = $DB->get_record('local_obf_backpack_emails', $fields, '*',
-                IGNORE_MULTIPLE);
+            IGNORE_MULTIPLE);
 
         if ($backpackobj === false) {
             if (!self::does_provider_require_email_verification($provider) && array_key_exists('user_id', $fields)) {
@@ -219,6 +240,7 @@ class obf_backpack {
                     try {
                         $obj->connect($user->email);
                     } catch (Exception $e) {
+                        debugging('Unknown exception : ' . $e->getMessage());
                         return false; // User does not have a backpack at the provider.
                     }
                     return $obj;
@@ -279,7 +301,7 @@ class obf_backpack {
         global $DB;
 
         $records = $DB->get_records_list('local_obf_backpack_emails', 'user_id',
-                $userids, '', 'id,user_id,email');
+            $userids, '', 'id,user_id,email');
 
         $ret = array();
 
@@ -302,10 +324,10 @@ class obf_backpack {
         $ret = array();
         if (is_null($provider)) {
             $records = $DB->get_records_select('local_obf_backpack_emails',
-                    'backpack_id > 0');
+                'backpack_id > 0');
         } else {
             $records = $DB->get_records_sql('SELECT * FROM {local_obf_backpack_emails} ' .
-                    'WHERE backpack_id > 0 AND backpack_provider = :provider', array('provider' => $provider));
+                'WHERE backpack_id > 0 AND backpack_provider = :provider', array('provider' => $provider));
         }
 
         foreach ($records as $record) {
@@ -324,7 +346,7 @@ class obf_backpack {
     protected function connect_to_backpack($email) {
         $curl = $this->get_transport();
         $output = $curl->post($this->get_apiurl() . 'convert/email',
-                array('email' => $email));
+            array('email' => $email));
         $json = json_decode($output);
         $code = $curl->info['http_code'];
 
@@ -337,6 +359,7 @@ class obf_backpack {
 
     /**
      * Get transport.
+     *
      * @return curl
      */
     protected function get_transport() {
@@ -376,7 +399,7 @@ class obf_backpack {
 
         $curl->setHeader('Content-Type: application/json');
         $output = $curl->post(self::PERSONA_VERIFIER_URL, json_encode($params),
-                $curlopts);
+            $curlopts);
 
         $ret = json_decode($output);
 
@@ -386,7 +409,7 @@ class obf_backpack {
             // No need for debug messages when running tests.
             if (!PHPUNIT_TEST) {
                 debugging($error . '. Assertion: ' . var_export($assertion, true),
-                        DEBUG_DEVELOPER);
+                    DEBUG_DEVELOPER);
             }
 
             throw new Exception($error);
@@ -421,11 +444,13 @@ class obf_backpack {
             $args->email = s($email);
             $args->provider = $this->get_providerfullname();
             throw new Exception(get_string('backpackemailnotfound', 'local_obf',
-                    $args));
+                $args));
         }
     }
+
     /**
      * Get groups for backpack.
+     *
      * @return array groups
      */
     public function get_groups() {
@@ -435,11 +460,13 @@ class obf_backpack {
 
         return is_object($json) ? $json->groups : array();
     }
+
     /**
      * Get assertions in a group.
+     *
      * @param mixed $groupid
      * @param int $limit
-     * @return obf_assertion_collection Assertions in the group
+     * @return obfassertioncollection Assertions in the group
      */
     public function get_group_assertions($groupid, $limit = -1) {
         if ($this->backpackid < 0) {
@@ -449,7 +476,7 @@ class obf_backpack {
         $curl = $this->get_transport();
         $output = $curl->get($this->get_apiurl() . $this->get_backpack_id() . '/group/' . $groupid . '.json');
         $json = json_decode($output);
-        $assertions = new obf_assertion_collection();
+        $assertions = new obfassertioncollection();
 
         if (isset($json->badges)) {
             foreach ($json->badges as $item) {
@@ -483,7 +510,7 @@ class obf_backpack {
      * Get backpack assertions for all allowed groups.
      *
      * @param int $limit
-     * @return \obf_assertion_collection
+     * @return \classes\obfassertioncollection
      * @throws Exception
      */
     public function get_assertions($limit = -1) {
@@ -491,7 +518,7 @@ class obf_backpack {
             throw new Exception('No badge groups selected.');
         }
 
-        $assertions = new obf_assertion_collection();
+        $assertions = new obfassertioncollection();
 
         foreach ($this->badge_groups as $groupid) {
             $assertions->add_collection($this->get_group_assertions($groupid));
@@ -502,6 +529,7 @@ class obf_backpack {
 
     /**
      * Get assertions and return them as an arrays in array.
+     *
      * @param int $limit
      * @return array[]
      */
@@ -537,10 +565,12 @@ class obf_backpack {
             $this->set_id($id);
         }
         try {
-            cache_helper::invalidate_by_event('local_obf_userconfig_changed', array($this->get_user_id()) );
+            cache_helper::invalidate_by_event('local_obf_userconfig_changed', array($this->get_user_id()));
         } catch (\Exception $ex) {
+            debugging('Unknown exception : ' . $ex->getMessage());
         }
     }
+
     /**
      * Delete record. (Disconnect backpack)
      */
@@ -551,6 +581,7 @@ class obf_backpack {
             $DB->delete_records('local_obf_backpack_emails', array('id' => $this->id));
         }
     }
+
     /**
      * Is backpack connected?
      */
@@ -560,6 +591,7 @@ class obf_backpack {
 
     /**
      * Get id.
+     *
      * @return int
      */
     public function get_id() {
@@ -568,6 +600,7 @@ class obf_backpack {
 
     /**
      * Get user id.
+     *
      * @return int
      */
     public function get_user_id() {
@@ -576,6 +609,7 @@ class obf_backpack {
 
     /**
      * Get email address.
+     *
      * @return string
      */
     public function get_email() {
@@ -584,6 +618,7 @@ class obf_backpack {
 
     /**
      * Get backpack id.
+     *
      * @return mixed
      */
     public function get_backpack_id() {
@@ -592,6 +627,7 @@ class obf_backpack {
 
     /**
      * Set id.
+     *
      * @param int $id
      * @return $this
      */
@@ -602,6 +638,7 @@ class obf_backpack {
 
     /**
      * Set user id.
+     *
      * @param int $userid
      */
     public function set_user_id($userid) {
@@ -611,6 +648,7 @@ class obf_backpack {
 
     /**
      * Set email address.
+     *
      * @param string $email Email address
      */
     public function set_email($email) {
@@ -620,6 +658,7 @@ class obf_backpack {
 
     /**
      * Set backpack id.
+     *
      * @param mixed $backpackid Backpack id on the backpack provider
      */
     public function set_backpack_id($backpackid) {
@@ -629,6 +668,7 @@ class obf_backpack {
 
     /**
      * Get group ids.
+     *
      * @return array Groups set to be displayed.
      */
     public function get_group_ids() {
@@ -637,6 +677,7 @@ class obf_backpack {
 
     /**
      * Set groups.
+     *
      * @param array $groups
      */
     public function set_groups($groups) {
@@ -646,15 +687,16 @@ class obf_backpack {
 
     /**
      * Set transport.
+     *
      * @param curl $transport
      */
     public function set_transport($transport) {
         $this->transport = $transport;
     }
-    
+
     /**
      * Test API is reachable.
-     * 
+     *
      * @return boolean True on success
      * @throws Exception On API failure.
      */
@@ -663,53 +705,63 @@ class obf_backpack {
         require_once($CFG->libdir . '/filelib.php');
         $email = isset($USER->email) ? $USER->email : 'test@example.com';
         $curl = new curl();
-        $fullurl = $url. 'convert/email';
+        $fullurl = $url . 'convert/email';
         $output = $curl->post($fullurl,
-                array('email' => $email));
+            array('email' => $email));
         $json = json_decode($output);
         $code = $curl->info['http_code'];
 
         if (is_null($json) && $code != 200) {
-            throw new Exception(get_string('testbackpackapiurlexception', 'local_obf', 
-                    (object)array('url' => $fullurl, 'errorcode' => $code))
-                    , $code);
+            throw new Exception(get_string('testbackpackapiurlexception', 'local_obf',
+                    (object) array('url' => $fullurl, 'errorcode' => $code))
+                , $code);
         }
 
         return true;
     }
+
     /**
      * Backpack connection saved to database?
+     *
      * @return bool True if saved.
      */
     public function exists() {
         return !empty($this->id) && $this->id > 0;
     }
+
     /**
      * Check if backpack requires email verification.
+     *
      * @return bool True if email verification is required.
      */
     public function requires_email_verification() {
         return self::does_provider_require_email_verification($this->provider);
     }
+
     /**
      * Check if backpacks with provider of $provider require email verification.
+     *
      * @param int $provider
      * @return bool True if email verification is required.
      */
     public static function does_provider_require_email_verification($provider) {
         return array_key_exists($provider, self::$providerrequiresemailverification) &&
-                self::$providerrequiresemailverification[$provider];
+            self::$providerrequiresemailverification[$provider];
     }
+
     /**
      * Get list or provider ids.
+     *
      * @return int[]
      */
     public static function get_providers() {
         self::populate_provider_sources();
         return self::$providers;
     }
+
     /**
      * Set backpacks provider.
+     *
      * @param int $provider
      * @return $this
      */
@@ -728,15 +780,17 @@ class obf_backpack {
     public static function get_default_provider() {
         self::populate_provider_sources();
         $default = null;
-        foreach(self::$providershortnames as $key => $shortname) {
+        foreach (self::$providershortnames as $key => $shortname) {
             if (is_null($default) || $shortname = 'moz') {
                 $default = $key;
             }
         }
         return $default;
     }
+
     /**
      * Get provider on the backpack.
+     *
      * @return int Provider as self::BACKPACK_PROVIDER_*
      */
     public function get_provider() {
@@ -746,6 +800,7 @@ class obf_backpack {
 
     /**
      * Get provider record from the database
+     *
      * @param int $providerid
      * @return stdClass
      */
@@ -762,15 +817,15 @@ class obf_backpack {
      * @return boolean|int Record ID on succes. False otherwise.
      */
     public static function save_provider_record($providerobj) {
-       global $DB;
-       $id = false;
-       if (!empty($providerobj->id)) {
-           $DB->update_record('local_obf_backpack_sources', $providerobj);
-           $id = $providerobj->id;
-       } else {
-           $id = $DB->insert_record('local_obf_backpack_sources', $providerobj);
-       }
-       return $id;
+        global $DB;
+        $id = false;
+        if (!empty($providerobj->id)) {
+            $DB->update_record('local_obf_backpack_sources', $providerobj);
+            $id = $providerobj->id;
+        } else {
+            $id = $DB->insert_record('local_obf_backpack_sources', $providerobj);
+        }
+        return $id;
     }
 
     /**
@@ -780,40 +835,48 @@ class obf_backpack {
      * @return boolean|int Record ID on succes. False otherwise.
      */
     public static function delete_provider_record($providerobj) {
-       global $DB;
-       if (!empty($providerobj->id)) {
-           $ret = $DB->delete_records('local_obf_backpack_sources', array('id' => $providerobj->id));
-           $DB->delete_records('local_obf_backpack_emails', array('backpack_provider' => $providerobj->id));
-           return $ret;
-       } else {
-           return false;
-       }
+        global $DB;
+        if (!empty($providerobj->id)) {
+            $ret = $DB->delete_records('local_obf_backpack_sources', array('id' => $providerobj->id));
+            $DB->delete_records('local_obf_backpack_emails', array('backpack_provider' => $providerobj->id));
+            return $ret;
+        } else {
+            return false;
+        }
     }
+
     /**
      * Get assertion source
+     *
      * @return int
      */
     public function get_source() {
         return $this->provider;
     }
+
     /**
      * Get providers short name.
+     *
      * @see self::$providershortnames
      */
     public function get_providershortname() {
         $provider = $this->get_provider();
         return self::get_providershortname_by_providerid($provider);
     }
+
     /**
      * Get providers full name.
+     *
      * @see self::$providerfullnames
      */
     public function get_providerfullname() {
         $provider = $this->get_provider();
         return self::get_providerfullname_by_providerid($provider);
     }
+
     /**
      * Get short name matching provider id.
+     *
      * @param int $provider
      * @see self::$providershortnames
      */
@@ -823,6 +886,7 @@ class obf_backpack {
 
     /**
      * Get full name matching provider id.
+     *
      * @param int $provider
      * @see self::$providerfullnames
      */

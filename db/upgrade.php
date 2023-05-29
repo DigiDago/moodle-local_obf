@@ -21,7 +21,6 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * The upgrade function for local_obf.
@@ -57,7 +56,7 @@ function xmldb_local_obf_upgrade($oldversion) {
         // Adding fields to table obf_criterion_attributes.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('obf_criterion_type_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL,
-                null, null);
+            null, null);
         $table->add_field('badge_id', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
         $table->add_field('name', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
         $table->add_field('value', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
@@ -65,7 +64,7 @@ function xmldb_local_obf_upgrade($oldversion) {
         // Adding keys to table obf_criterion_attributes.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
         $table->add_key('fk_obf_criterion_type_id', XMLDB_KEY_FOREIGN,
-                array('obf_criterion_type_id'), 'obf_criterion_types', array('id'));
+            array('obf_criterion_type_id'), 'obf_criterion_types', array('id'));
 
         // Conditionally launch create table for obf_criterion_attributes.
         if (!$dbman->table_exists($table)) {
@@ -84,15 +83,15 @@ function xmldb_local_obf_upgrade($oldversion) {
         // Adding fields to table obf_criterion_groups.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('obf_criterion_type_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL,
-                null, null);
+            null, null);
         $table->add_field('badge_id', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
         $table->add_field('completion_method', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null,
-                null);
+            null);
 
         // Adding keys to table obf_criterion_groups.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
         $table->add_key('fk_obf_criterion_type_id', XMLDB_KEY_FOREIGN,
-                array('obf_criterion_type_id'), 'obf_criterion_types', array('id'));
+            array('obf_criterion_type_id'), 'obf_criterion_types', array('id'));
 
         // Conditionally launch create table for obf_criterion_groups.
         if (!$dbman->table_exists($table)) {
@@ -105,14 +104,14 @@ function xmldb_local_obf_upgrade($oldversion) {
         // Adding fields to table obf_criterion_attributes.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('obf_criterion_group_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL,
-                null, null);
+            null, null);
         $table->add_field('name', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
         $table->add_field('value', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
 
         // Adding keys to table obf_criterion_attributes.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
         $table->add_key('fk_obf_criterion_group_id', XMLDB_KEY_FOREIGN,
-                array('obf_criterion_group_id'), 'obf_criterion_groups', array('id'));
+            array('obf_criterion_group_id'), 'obf_criterion_groups', array('id'));
 
         // Conditionally launch create table for obf_criterion_attributes.
         if (!$dbman->table_exists($table)) {
@@ -150,14 +149,14 @@ function xmldb_local_obf_upgrade($oldversion) {
         // Adding fields to table obf_criterion_attributes.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('obf_criterion_group_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL,
-                null, null);
+            null, null);
         $table->add_field('name', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
         $table->add_field('value', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
 
         // Adding keys to table obf_criterion_attributes.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
         $table->add_key('fk_obf_criterion_group_id', XMLDB_KEY_FOREIGN,
-                array('obf_criterion_group_id'), 'obf_criterion_groups', array('id'));
+            array('obf_criterion_group_id'), 'obf_criterion_groups', array('id'));
 
         // Conditionally launch create table for obf_criterion_attributes.
         if (!$dbman->table_exists($table)) {
@@ -173,26 +172,26 @@ function xmldb_local_obf_upgrade($oldversion) {
         $attributetable = new xmldb_table('obf_criterion_attributes');
         $attributetable->deleteKey('fk_obf_criterion_group_id');
         $field = new xmldb_field('obf_criterion_group_id', XMLDB_TYPE_INTEGER, '10', null,
-                XMLDB_NOTNULL, null, null, 'id');
+            XMLDB_NOTNULL, null, null, 'id');
 
         $dbman->rename_field($attributetable, $field, 'obf_criterion_id');
 
         // Rename criterion table.
         $criteriontable = new xmldb_table('obf_criterion_groups');
-        $dbman->rename_table($criteriontable, 'obf_criterion');
+        $dbman->rename_table($criteriontable, 'classes\criterion\obf_criterion');
 
         // Add the new index.
         $attributetable->add_key('fk_obf_criterion_id', XMLDB_KEY_FOREIGN,
-                array('obf_criterion_id'), 'obf_criterion', array('id'));
+            array('obf_criterion_id'), 'classes\criterion\obf_criterion', array('id'));
 
         upgrade_plugin_savepoint(true, 2013101000, 'local', 'obf');
     }
 
     if ($oldversion < 2013101001) {
-        $table = new xmldb_table('obf_criterion');
+        $table = new xmldb_table('classes\criterion\obf_criterion');
         $table->deleteKey('fk_obf_criterion_type_id');
         $field = new xmldb_field('obf_criterion_type_id', XMLDB_TYPE_INTEGER, '10', null,
-                XMLDB_NOTNULL, null, null, 'id');
+            XMLDB_NOTNULL, null, null, 'id');
 
         $dbman->rename_field($table, $field, 'criterion_type_id');
 
@@ -234,14 +233,14 @@ function xmldb_local_obf_upgrade($oldversion) {
         // Adding fields to table obf_criterion_met.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('obf_criterion_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null,
-                null);
+            null);
         $table->add_field('user_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('met_at', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
 
         // Adding keys to table obf_criterion_met.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
         $table->add_key('fk_obf_criterion_id', XMLDB_KEY_FOREIGN, array('obf_criterion_id'),
-                'obf_criterion', array('id'));
+            'classes\criterion\obf_criterion', array('id'));
         $table->add_key('fk_user_id', XMLDB_KEY_FOREIGN, array('user_id'), 'user', array('id'));
 
         // Conditionally launch create table for obf_criterion_met.
@@ -282,7 +281,7 @@ function xmldb_local_obf_upgrade($oldversion) {
         // Define field group_id to be added to obf_backpack_emails.
         $table = new xmldb_table('obf_backpack_emails');
         $field = new xmldb_field('group_id', XMLDB_TYPE_INTEGER, '10', null, null, null, null,
-                'backpack_id');
+            'backpack_id');
 
         // Conditionally launch add field group_id.
         if (!$dbman->field_exists($table, $field)) {
@@ -309,7 +308,7 @@ function xmldb_local_obf_upgrade($oldversion) {
         // Adding fields to table obf_criterion_courses.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('obf_criterion_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null,
-                null);
+            null);
         $table->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('grade', XMLDB_TYPE_INTEGER, '2', null, null, null, null);
         $table->add_field('completed_by', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
@@ -317,7 +316,7 @@ function xmldb_local_obf_upgrade($oldversion) {
         // Adding keys to table obf_criterion_courses.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
         $table->add_key('fk_obf_criterion_id', XMLDB_KEY_FOREIGN, array('obf_criterion_id'),
-                'obf_criterion', array('id'));
+            'classes\criterion\obf_criterion', array('id'));
         $table->add_key('fk_course_id', XMLDB_KEY_FOREIGN, array('courseid'), 'course', array('id'));
 
         // Conditionally launch create table for obf_criterion_courses.
@@ -332,7 +331,7 @@ function xmldb_local_obf_upgrade($oldversion) {
     if ($oldversion < 2013103000) {
 
         // Define field criterion_type_id to be dropped from obf_criterion.
-        $table = new xmldb_table('obf_criterion');
+        $table = new xmldb_table('classes\criterion\obf_criterion');
         $field = new xmldb_field('criterion_type_id');
         $key = new xmldb_key('obf_critgrou_obf_ix', XMLDB_KEY_UNIQUE, array('criterion_type_id'));
 
@@ -378,7 +377,7 @@ function xmldb_local_obf_upgrade($oldversion) {
 
         if (!is_writable($newpkidir)) {
             throw new Exception(get_string('pkidirnotwritable', 'local_obf',
-                    $newpkidir));
+                $newpkidir));
         }
         $oldpkeyfile = $oldpkidir . $pkeyfilename;
         $oldcertfile = $oldpkidir . $certfilename;
@@ -386,10 +385,10 @@ function xmldb_local_obf_upgrade($oldversion) {
         $newpkeyfile = $newpkidir . $pkeyfilename;
         $newcertfile = $newpkidir . $certfilename;
 
-        if (is_file($oldpkeyfile) ) {
+        if (is_file($oldpkeyfile)) {
             copy($oldpkeyfile, $newpkeyfile);
         }
-        if (is_file($oldcertfile) ) {
+        if (is_file($oldcertfile)) {
             copy($oldcertfile, $newcertfile);
         }
 
@@ -428,7 +427,7 @@ function xmldb_local_obf_upgrade($oldversion) {
 
         // Adding keys to table obf_criterion_params.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
-        $table->add_key('fk_obf_criterion_id', XMLDB_KEY_FOREIGN, array('obf_criterion_id'), 'obf_criterion', array('id'));
+        $table->add_key('fk_obf_criterion_id', XMLDB_KEY_FOREIGN, array('obf_criterion_id'), 'classes\criterion\obf_criterion', array('id'));
 
         // Conditionally launch create table for obf_criterion_params.
         if (!$dbman->table_exists($table)) {
@@ -441,7 +440,7 @@ function xmldb_local_obf_upgrade($oldversion) {
     if ($oldversion < 2015061700) {
 
         // Define table obf_user_preferences to be created.
-        $table = new xmldb_table('obf_user_preferences');
+        $table = new xmldb_table('classes\obf_user_preferences');
 
         // Adding fields to table obf_user_preferences.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
@@ -499,7 +498,7 @@ function xmldb_local_obf_upgrade($oldversion) {
         // Adding keys to table obf_issue_events.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
         $table->add_key('fk_user_id', XMLDB_KEY_FOREIGN, array('user_id'), 'user', array('id'));
-        $table->add_key('fk_obf_criterion_id', XMLDB_KEY_FOREIGN, array('obf_criterion_id'), 'obf_criterion', array('id'));
+        $table->add_key('fk_obf_criterion_id', XMLDB_KEY_FOREIGN, array('obf_criterion_id'), 'classes\criterion\obf_criterion', array('id'));
 
         // Conditionally launch create table for obf_issue_events.
         if (!$dbman->table_exists($table)) {
@@ -524,10 +523,10 @@ function xmldb_local_obf_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2015062300, 'local', 'obf');
     }
     if ($oldversion < 2015062501) {
-        $oldtables = array('obf_criterion_courses', 'obf_criterion',
-                'obf_email_templates', 'obf_criterion_met', 'obf_backpack_emails',
-                'obf_criterion_params', 'obf_user_preferences',
-                'obf_user_badge_blacklist', 'obf_issue_events');
+        $oldtables = array('obf_criterion_courses', 'classes\criterion\obf_criterion',
+            'obf_email_templates', 'obf_criterion_met', 'obf_backpack_emails',
+            'obf_criterion_params', 'classes\obf_user_preferences',
+            'obf_user_badge_blacklist', 'obf_issue_events');
         foreach ($oldtables as $oldtable) {
             // Define table obf_criterion_courses to be renamed to NEWNAMEGOESHERE.
             $table = new xmldb_table($oldtable);
@@ -537,7 +536,7 @@ function xmldb_local_obf_upgrade($oldversion) {
             if ($oldtable == 'obf_user_badge_blacklist') {
                 $newtablename = 'local_obf_badge_blacklists';
             } else {
-                $newtablename = 'local_'.$oldtable;
+                $newtablename = 'local_' . $oldtable;
             }
             if ($dbman->table_exists($table)) {
                 $dbman->rename_table($table, $newtablename);
@@ -588,10 +587,10 @@ function xmldb_local_obf_upgrade($oldversion) {
     }
 
     if ($oldversion < 2016031800) {
-         //set default apiurl https://openbadgefactory.com/
-         set_config('apiurl', "https://openbadgefactory.com/", 'local_obf');
-         // Obf savepoint reached.
-         upgrade_plugin_savepoint(true, 2016031800, 'local', 'obf');
+        //set default apiurl https://openbadgefactory.com/
+        set_config('apiurl', "https://openbadgefactory.com/", 'local_obf');
+        // Obf savepoint reached.
+        upgrade_plugin_savepoint(true, 2016031800, 'local', 'obf');
     }
 
     if ($oldversion < 2016060301) {
@@ -625,7 +624,7 @@ function xmldb_local_obf_upgrade($oldversion) {
             $obj->shortname = 'obp';
             $obj->requirepersonaorg = 0;
             $backpacksources[] = clone($obj);
-            foreach($backpacksources as $key => $backpacksource) {
+            foreach ($backpacksources as $key => $backpacksource) {
                 $newids[$obj->shortname] = $DB->insert_record('local_obf_backpack_sources', $backpacksource);
             }
         }
@@ -655,7 +654,7 @@ function xmldb_local_obf_upgrade($oldversion) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        
+
         upgrade_plugin_savepoint(true, 2016062200, 'local', 'obf');
     }
     if ($oldversion < 2016081000) {
@@ -697,29 +696,29 @@ function xmldb_local_obf_upgrade($oldversion) {
 
     /**
      * FIXME
-    if ($oldversion < 2016121900) {
-        require_once(__DIR__ . '/../class/client.php');
-        if (class_exists('obf_client') && 
-                method_exists('obf_client', 'get_client_info') && 
-                method_exists('obf_client', 'get_branding_image_url')
-        ) {
-            try {
-                if (obf_client::has_client_id()) {
-                    $client = obf_client::get_instance();
-                    $client_info = $client->get_client_info();
-                    $images = array('verified_by', 'issued_by');
-                    set_config('verified_client', $client_info['verified'] == 1, 'local_obf');
-                    foreach($images as $imagename) {
-                        $imageurl = $client->get_branding_image_url($imagename);
-                        set_config($imagename . '_image_url', $imageurl, 'local_obf');
-                    }
-                }
-            } catch (Exception $ex) {
-            }
-        }
-        upgrade_plugin_savepoint(true, 2016121900, 'local', 'obf');
-    }
-    */
+     * if ($oldversion < 2016121900) {
+     * require_once(__DIR__ . '/../classes/client.php');
+     * if (class_exists('obf_client') &&
+     * method_exists('obf_client', 'get_client_info') &&
+     * method_exists('obf_client', 'get_branding_image_url')
+     * ) {
+     * try {
+     * if (obf_client::has_client_id()) {
+     * $client = obf_client::get_instance();
+     * $clientinfo = $client->get_client_info();
+     * $images = array('verified_by', 'issued_by');
+     * set_config('verified_client', $clientinfo['verified'] == 1, 'local_obf');
+     * foreach($images as $imagename) {
+     * $imageurl = $client->get_branding_image_url($imagename);
+     * set_config($imagename . '_image_url', $imageurl, 'local_obf');
+     * }
+     * }
+     * } catch (Exception $ex) {
+     * }
+     * }
+     * upgrade_plugin_savepoint(true, 2016121900, 'local', 'obf');
+     * }
+     */
 
     if ($oldversion < 2017010900) {
         set_config('displaymoodlebadges', 0, 'local_obf');
@@ -751,7 +750,6 @@ function xmldb_local_obf_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2019090310, 'local', 'obf');
     }
 
-
     if ($oldversion < 2021100700) {
         $table = new xmldb_table('local_obf_oauth2');
 
@@ -782,9 +780,9 @@ function xmldb_local_obf_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-        $client_id = get_config('local_obf', 'obfclientid');
-        if ($client_id) {
-            $DB->execute('UPDATE {local_obf_criterion} SET client_id = ?', array($client_id));
+        $clientid = get_config('local_obf', 'obfclientid');
+        if ($clientid) {
+            $DB->execute('UPDATE {local_obf_criterion} SET client_id = ?', array($clientid));
         }
 
         upgrade_plugin_savepoint(true, 2021110500, 'local', 'obf');

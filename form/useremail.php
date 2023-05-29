@@ -21,10 +21,12 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') or die();
+
+defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/obfform.php');
 require_once(__DIR__ . '/../renderer.php');
+
 /**
  * User email verify form.
  *
@@ -41,12 +43,12 @@ class obf_user_email_form extends local_obf_form_base {
         /* @var $mform obf_user_email_form */
         $mform = $this->_form;
 
-        $modal_title = get_string('addemailheader', 'local_obf');
+        $modaltitle = get_string('addemailheader', 'local_obf');
         $mform->addElement('html', '<div class="modal-dialog"><div class="modal-content">');
-        $mform->addElement('html', '<div class="modal-header">'.
-            '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>'.
-            '<h4 class="modal-title" id="verifyEmailModalLabel">'.$modal_title.'</h4>'.
-        '</div>');
+        $mform->addElement('html', '<div class="modal-header">' .
+            '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>' .
+            '<h4 class="modal-title" id="verifyEmailModalLabel">' . $modaltitle . '</h4>' .
+            '</div>');
         $mform->addElement('html', '<div class="modal-body">');
 
         // Step 1
@@ -62,7 +64,8 @@ class obf_user_email_form extends local_obf_form_base {
         $mform->addElement('html', '<p>' . get_string('verifytokendescription', 'local_obf') . '</p>');
         //An email has been sent to the provided address. Check your email for a verification code.
         $mform->addElement('text', 'token', get_string('verifytoken', 'local_obf'));
-        $mform->addElement('submit', 'verify_token_button', get_string('verifytokenbutton', 'local_obf'), array('class' => 'verify-token'));
+        $mform->addElement('submit', 'verify_token_button', get_string('verifytokenbutton', 'local_obf'),
+            array('class' => 'verify-token'));
         $mform->addElement('html', '</div>');
 
         $mform->addElement('html', '<div class="step step-three status hide">');

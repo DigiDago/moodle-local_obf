@@ -21,11 +21,17 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') or die();
+
+use classes\criterion\obf_criterion;
+use classes\criterion\obf_criterion_course;
+
+defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/obfform.php');
+
 /**
  * Course criterion form.
+ *
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -49,6 +55,7 @@ class obf_coursecriterion_form extends local_obf_form_base {
 
     /**
      * Defines forms elements
+     *
      * @see obf_criterion_course::get_form_after_save_options
      * @see obf_criterion_course::get_form_completion_options
      * @see obf_criterion_course::get_form_config
@@ -76,18 +83,20 @@ class obf_coursecriterion_form extends local_obf_form_base {
 
         $buttonarray = array();
         $buttonarray[] = &$mform->createElement('submit', 'submitbutton',
-                        get_string('savechanges'));
+            get_string('savechanges'));
 
         if ($this->criterioncourse->exists()) {
             $buttonarray[] = &$mform->createElement('cancel', 'cancelbutton',
-                            get_string('deletecriterion', 'local_obf'));
+                get_string('deletecriterion', 'local_obf'));
         }
 
         $mform->addGroup($buttonarray, 'buttonar', '', array(' '), false);
         $mform->closeHeaderBefore('buttonar');
     }
+
     /**
      * Get criterion.
+     *
      * @return obf_criterion
      */
     public function get_criterion() {

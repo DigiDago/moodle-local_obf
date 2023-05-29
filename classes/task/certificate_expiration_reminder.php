@@ -24,15 +24,16 @@
  */
 
 namespace local_obf\task;
-use \obf_client;
-use \stdClass;
+
+use classes\obf_client;
+use stdClass;
 
 /**
  * Description of certificate_expiration_reminder
  *
  * @author jsuorsa
  */
-class certificate_expiration_reminder extends \core\task\scheduled_task  {
+class certificate_expiration_reminder extends \core\task\scheduled_task {
     public function get_name() {
         // Shown in admin screens
         return get_string('certificateexpirationremindertask', 'local_obf');
@@ -41,7 +42,7 @@ class certificate_expiration_reminder extends \core\task\scheduled_task  {
     public function execute() {
         global $CFG;
 
-        require_once($CFG->dirroot . '/local/obf/class/client.php');
+        require_once($CFG->dirroot . '/local/obf/classes/client.php');
         require_once($CFG->libdir . '/messagelib.php');
         require_once($CFG->libdir . '/datalib.php');
 
@@ -61,7 +62,7 @@ class certificate_expiration_reminder extends \core\task\scheduled_task  {
         $textparams = new stdClass();
         $textparams->days = $days;
         $textparams->obfurl = obf_client::get_site_url(); //FIXME missing client id
-        $textparams->configurl = (string)(new \moodle_url('/local/obf/config.php'));
+        $textparams->configurl = (string) (new \moodle_url('/local/obf/config.php'));
 
         foreach ($admins as $admin) {
             $eventdata = new \core\message\message();
@@ -70,14 +71,14 @@ class certificate_expiration_reminder extends \core\task\scheduled_task  {
             $eventdata->userfrom = $admin;
             $eventdata->userto = $admin;
             $eventdata->subject = get_string('expiringcertificatesubject',
-                    'local_obf');
+                'local_obf');
             $eventdata->fullmessage = get_string('expiringcertificate', 'local_obf',
-                    $textparams);
+                $textparams);
             $eventdata->fullmessageformat = FORMAT_PLAIN;
             $eventdata->fullmessagehtml = get_string('expiringcertificate',
-                    'local_obf', $textparams);
+                'local_obf', $textparams);
             $eventdata->smallmessage = get_string('expiringcertificatesubject',
-                    'local_obf');
+                'local_obf');
 
             $result = message_send($eventdata);
         }

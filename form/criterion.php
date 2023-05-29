@@ -21,7 +21,13 @@
  * @copyright  2013-2020 Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') or die();
+
+use classes\criterion\obf_criterion;
+use classes\criterion\obf_criterion_course;
+use classes\criterion\obf_criterion_item;
+use classes\criterion\obf_criterion_unknown;
+
+defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 
@@ -42,9 +48,9 @@ class obf_criterion_form extends local_obf_form_base implements renderable {
      */
     protected $criterion = null;
 
-
     /**
      * Defines forms elements
+     *
      * @see obf_criterion_course::get_form_after_save_options
      * @see obf_criterion_course::get_form_completion_options
      * @see obf_criterion_course::get_form_config
@@ -52,7 +58,7 @@ class obf_criterion_form extends local_obf_form_base implements renderable {
      */
     protected function definition() {
         global $DB, $OUTPUT;
-        require_once(__DIR__ . '/../class/criterion/unknown.php');
+        require_once(__DIR__ . '/../classes/criterion/unknown.php');
 
         $mform = $this->_form;
         $this->criterion = $this->_customdata['criterion'];
@@ -73,12 +79,12 @@ class obf_criterion_form extends local_obf_form_base implements renderable {
             }
 
             $mform->addElement('header', 'header_criteria_courses',
-                    get_string('criteriacourses', 'local_obf'));
+                get_string('criteriacourses', 'local_obf'));
 
             if (count($criterioncourses) == 1 && empty($addcourse) &&
-                    $criterioncourses[0]->get_courseid() == -1 &&
-                    $criterioncourses[0]->requires_field('courseid') &&
-                    $criterioncourses[0]->get_criteriatype() != obf_criterion_item::CRITERIA_TYPE_UNKNOWN) {
+                $criterioncourses[0]->get_courseid() == -1 &&
+                $criterioncourses[0]->requires_field('courseid') &&
+                $criterioncourses[0]->get_criteriatype() != obf_criterion_item::CRITERIA_TYPE_UNKNOWN) {
                 $this->get_courses($mform);
                 $showoptions = false;
                 $showaddcourse = false;
@@ -100,7 +106,7 @@ class obf_criterion_form extends local_obf_form_base implements renderable {
                 $criterioncourses[0]->get_form_config($mform, $this);
                 if ($showaddcourse) {
                     $mform->addElement('submit', 'addcourse',
-                            get_string('criteriaaddcourse', 'local_obf'), array('class' => 'addcourse'));
+                        get_string('criteriaaddcourse', 'local_obf'), array('class' => 'addcourse'));
                 }
                 $criterioncourses[0]->get_form_completion_options($mform, $this, $criterioncourses);
                 $criterioncourses[0]->get_form_after_save_options($mform, $this);
@@ -114,7 +120,8 @@ class obf_criterion_form extends local_obf_form_base implements renderable {
 
         $elementnames = array();;
         foreach ($mform->_elements as $elm) {
-            if (property_exists($elm, '_attributes') && is_array($elm->_attributes) && array_key_exists('name', $elm->_attributes)) {
+            if (property_exists($elm, '_attributes') && is_array($elm->_attributes) &&
+                array_key_exists('name', $elm->_attributes)) {
                 $elementnames[] = $elm->_attributes['name'];
             }
         }
@@ -124,17 +131,17 @@ class obf_criterion_form extends local_obf_form_base implements renderable {
         foreach ($criteriatypeids as $typeid) {
             $obj = obf_criterion_item::build_type($typeid);
             $fields = $obj->get_form_fields();
-            foreach ($fields as $field => $param_type) {
+            foreach ($fields as $field => $paramtype) {
                 if (!in_array($field, $elementnames)) {
-                    $toadd[$field] = $param_type;
+                    $toadd[$field] = $paramtype;
                 }
             }
         }
-        foreach ($toadd as $key => $param_type) {
+        foreach ($toadd as $key => $paramtype) {
             if (($pos = strpos($key, '[]')) === false) {
                 $mform->addElement('hidden', $key, $_REQUEST[$key]);
             } else {
-                $simplekey = substr($key,0,$pos);
+                $simplekey = substr($key, 0, $pos);
                 if (!in_array($simplekey, $elementnames) && !in_array($key, $elementnames)) {
                     $values = array_key_exists($simplekey, $_REQUEST) ? $_REQUEST[$simplekey] : array();
                     $values = array_filter($values);
@@ -142,13 +149,13 @@ class obf_criterion_form extends local_obf_form_base implements renderable {
                     foreach ($values as $key => $value) {
                         # code...
                         if (!empty($value)) {
-                            $fullkey = $simplekey.'['.$key.']';
+                            $fullkey = $simplekey . '[' . $key . ']';
                             if (!in_array($fullkey, $elementnames)) {
                                 if (is_array($value)) {
                                     // TODO: Handle date array("day" => "23", "month" => "12", "year" => "2015","enabled" => "1"})
                                 } else {
                                     $mform->addElement('hidden', $fullkey, $value);
-                                    $mform->setType($fullkey, $param_type);
+                                    $mform->setType($fullkey, $paramtype);
                                 }
                                 $addedkeys = true;
                             }
@@ -156,15 +163,17 @@ class obf_criterion_form extends local_obf_form_base implements renderable {
                     }
                     if ($addedkeys) {
                         $mform->addElement('hidden', $key);
-                        $mform->setType($key, $param_type);
+                        $mform->setType($key, $paramtype);
                     }
                 }
             }
-            $mform->setType($key, $param_type);
+            $mform->setType($key, $paramtype);
         }
     }
+
     /**
      * Add courses to the form.
+     *
      * @param MoodleQuickForm $mform
      */
     private function get_courses($mform) {
@@ -178,9 +187,9 @@ class obf_criterion_form extends local_obf_form_base implements renderable {
 
             if (method_exists('core_course_category', 'make_categories_list')) {// Moodle 3.9
                 $categories = core_course_category::make_categories_list();
-            } elseif (method_exists('coursecat', 'make_categories_list')) { // Moodle 3.5
+            } else if (method_exists('coursecat', 'make_categories_list')) { // Moodle 3.5
                 $categories = coursecat::make_categories_list();
-            }else { // Moodle 2.2.
+            } else { // Moodle 2.2.
                 $parents = array();
                 make_categories_list($categories, $parents);
             }
@@ -196,7 +205,7 @@ class obf_criterion_form extends local_obf_form_base implements renderable {
                 if ($hascourse || !$this->criterion->get_badge()->has_completion_criteria_with_course($course)) {
                     $categoryname = $categories[$course->category];
                     $courselist[$categoryname][$course->id] = format_string($course->fullname,
-                            true);
+                        true);
                 }
             }
 
@@ -208,54 +217,60 @@ class obf_criterion_form extends local_obf_form_base implements renderable {
             }
 
             $mform->addElement('header', 'header_criterion_fields',
-                    get_string('selectcourses', 'local_obf'));
+                get_string('selectcourses', 'local_obf'));
             $this->setExpanded($mform, 'header_criterion_fields');
             $mform->addHelpButton('header_criterion_fields', 'readmeenablecompletion', 'local_obf');
 
             // There aren't any courses that aren't already in this badge's criteria.
             if ($validcourses === 0) {
                 $mform->addElement('html',
-                        $OUTPUT->notification(get_string('novalidcourses', 'local_obf')));
+                    $OUTPUT->notification(get_string('novalidcourses', 'local_obf')));
             } else { // There are courses that can be selected -> show course selection.
                 $mform->addElement('html',
-                        html_writer::tag('p', get_string('selectcourses_help', 'local_obf')));
+                    html_writer::tag('p', get_string('selectcourses_help', 'local_obf')));
                 $select = $mform->addElement('selectgroups', 'course',
-                        get_string('selectcourses', 'local_obf'), $courselist,
-                        array('multiple' => true));
+                    get_string('selectcourses', 'local_obf'), $courselist,
+                    array('multiple' => true));
                 $select->setSelected($existingcourseids);
                 $mform->addRule('course', get_string('courserequired', 'local_obf'), 'required');
 
                 $buttons[] = $mform->createElement('submit', 'savecriteria',
-                        get_string('addcourses', 'local_obf'));
+                    get_string('addcourses', 'local_obf'));
                 $mform->addElement('hidden', 'addcourse', 'addcourse');
                 $mform->setType('addcourse', PARAM_TEXT);
             }
         } else { // No courses found with completion enabled.
             $mform->addElement('html',
-                    $OUTPUT->notification(get_string('nocourseswithcompletionenabled',
-                                    'local_obf')));
+                $OUTPUT->notification(get_string('nocourseswithcompletionenabled',
+                    'local_obf')));
         }
 
         $buttons[] = $mform->createElement('cancel', 'cancelbutton',
-                get_string('back', 'local_obf'));
+            get_string('back', 'local_obf'));
         $mform->addGroup($buttons, 'buttonar', '', null, false);
     }
+
     /**
      * Get criterion.
+     *
      * @return obf_criterion
      */
     public function get_criterion() {
         return $this->criterion;
     }
+
     /**
      * Get form.
+     *
      * @return MoodleQuickForm
      */
     public function get_form() {
         return $this->_form;
     }
+
     /**
      * Initialize categories.
+     *
      * @param array $categories
      * @return array Course list.
      */

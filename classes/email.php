@@ -22,6 +22,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace classes;
+
+use moodle_database;
+
 /**
  * Email templates -class.
  *
@@ -50,7 +54,7 @@ class obf_email {
      * @var string Email footer.
      */
     private $footer = '';
-    
+
     /**
      * @var string Email link text
      */
@@ -65,7 +69,7 @@ class obf_email {
      */
     public static function get_by_badge(obf_badge $badge, moodle_database $db) {
         $record = $db->get_record('local_obf_email_templates',
-                array('badge_id' => $badge->get_id()));
+            array('badge_id' => $badge->get_id()));
 
         if ($record !== false) {
             $obj = new self();
@@ -101,6 +105,7 @@ class obf_email {
 
     /**
      * Get id.
+     *
      * @return int
      */
     public function get_id() {
@@ -109,6 +114,7 @@ class obf_email {
 
     /**
      * Set id.
+     *
      * @param int $id
      * @return $this
      */
@@ -119,6 +125,7 @@ class obf_email {
 
     /**
      * Get badge id
+     *
      * @return string Badge id
      */
     public function get_badge_id() {
@@ -127,6 +134,7 @@ class obf_email {
 
     /**
      * Set badge id.
+     *
      * @param string $badgeid Badge id
      */
     public function set_badge_id($badgeid) {
@@ -136,6 +144,7 @@ class obf_email {
 
     /**
      * Get email subject.
+     *
      * @return string Subject
      */
     public function get_subject() {
@@ -144,6 +153,7 @@ class obf_email {
 
     /**
      * Set email subject
+     *
      * @param string $subject
      */
     public function set_subject($subject) {
@@ -153,6 +163,7 @@ class obf_email {
 
     /**
      * Get email body.
+     *
      * @return string Email body
      */
     public function get_body() {
@@ -161,6 +172,7 @@ class obf_email {
 
     /**
      * Set email body.
+     *
      * @param string $body Email body
      */
     public function set_body($body) {
@@ -170,6 +182,7 @@ class obf_email {
 
     /**
      * Get email footer.
+     *
      * @return string Email footer
      */
     public function get_footer() {
@@ -178,13 +191,14 @@ class obf_email {
 
     /**
      * Set email footer.
+     *
      * @param string $footer Email footer
      */
     public function set_footer($footer) {
         $this->footer = $footer;
         return $this;
     }
-    
+
     public function get_link_text() {
         return $this->linktext;
     }
@@ -193,6 +207,5 @@ class obf_email {
         $this->linktext = $linktext;
         return $this;
     }
-
 
 }

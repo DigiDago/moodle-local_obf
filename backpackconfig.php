@@ -21,9 +21,12 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+use classes\obf_backpack;
+
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
-require_once(__DIR__ . '/class/backpack.php');
+require_once(__DIR__ . '/classes/backpack.php');
 require_once(__DIR__ . '/form/backpackconfig.php');
 
 $context = context_system::instance();
@@ -94,9 +97,9 @@ switch ($action) {
         local_obf_backpackconfig_update_backpack_from_form($form, $backpack, $content);
         $providername = isset($backpack->fullname) ? $backpack->fullname : '';
         $params = array(array('class' => 'delete',
-                    'question' => get_string('confirmdelete', 'local_obf', $providername)));
+            'question' => get_string('confirmdelete', 'local_obf', $providername)));
         $PAGE->requires->yui_module('moodle-local_obf-submitconfirm',
-                'M.local_obf.init_submitconfirm', $params);
+            'M.local_obf.init_submitconfirm', $params);
         break;
 }
 

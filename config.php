@@ -21,9 +21,10 @@
  * @copyright  2013-2021, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
-require_once(__DIR__ . '/class/client.php');
+require_once(__DIR__ . '/classes/client.php');
 require_once(__DIR__ . '/form/config_oauth2.php');
 require_once(__DIR__ . '/form/settings.php');
 require_once(__DIR__ . '/form/badgeexport.php');
@@ -50,7 +51,6 @@ $PAGE->set_pagelayout('admin');
 
 $listclients = new moodle_url('/local/obf/config.php');
 
-
 $foo = new curl();
 
 echo $OUTPUT->header();
@@ -64,15 +64,14 @@ switch ($action) {
             echo '<p>' . get_string('infoconnectapi', 'local_obf') . '</p>';
             echo '</div>';
 
-            $new_oauth2 = $CFG->wwwroot . '/local/obf/config.php?action=edit&id=0';
-            $new_legacy = $CFG->wwwroot . '/local/obf/config_legacy.php';
+            $newoauth2 = $CFG->wwwroot . '/local/obf/config.php?action=edit&id=0';
+            $newlegacy = $CFG->wwwroot . '/local/obf/config_legacy.php';
             echo '<div class="actionbuttons">';
-            echo $OUTPUT->single_button($new_oauth2, get_string('addnewoauth2', 'local_obf'), 'get');
+            echo $OUTPUT->single_button($newoauth2, get_string('addnewoauth2', 'local_obf'), 'get');
             echo ' &nbsp; ';
-            echo $OUTPUT->single_button($new_legacy, get_string('addnewlegacy', 'local_obf'), 'get');
-            echo  '</div>';
-        }
-        else {
+            echo $OUTPUT->single_button($newlegacy, get_string('addnewlegacy', 'local_obf'), 'get');
+            echo '</div>';
+        } else {
             $table = new html_table();
 
             $table->id = 'obf-displayclients';
@@ -86,7 +85,7 @@ switch ($action) {
                 get_string('actions', 'moodle')
             );
 
-            foreach($clients as $client) {
+            foreach ($clients as $client) {
                 $row = new html_table_row();
 
                 $editurl = new moodle_url('/local/obf/config.php?action=edit&id=' . $client->id);
@@ -95,7 +94,8 @@ switch ($action) {
 
                 $deleteurl = new moodle_url('/local/obf/config.php?action=delete&id=' . $client->id . '&sesskey=' . sesskey());
                 $deleteicon = new pix_icon('t/delete', get_string('delete'));
-                $deleteaction = $OUTPUT->action_icon($deleteurl, $deleteicon, new confirm_action(get_string('deleteclientconfirm', 'local_obf')));
+                $deleteaction = $OUTPUT->action_icon($deleteurl, $deleteicon,
+                    new confirm_action(get_string('deleteclientconfirm', 'local_obf')));
 
                 $icons = new html_table_cell($editaction . ' ' . $deleteaction);
 
@@ -127,7 +127,7 @@ switch ($action) {
                 set_config('apidataretrieve', $data->apidataretrieve, 'local_obf');
                 redirect(new moodle_url('/local/obf/config.php',
                     array('msg' => get_string('settingssaved',
-                    'local_obf'))));
+                        'local_obf'))));
             }
 
             echo '<hr>';
@@ -145,13 +145,12 @@ switch ($action) {
         if ($clientid) {
             $isadding = false;
             $clientrecord = $DB->get_record('local_obf_oauth2', array('id' => $clientid), '*', MUST_EXIST);
-            $client_secret = $clientrecord->client_secret;
+            $clientsecret = $clientrecord->client_secret;
             //mask previusly set client secret in config form
-            $clientrecord->client_secret = '* * * * * * * * * * * * * * * * * *' . substr($client_secret, -3, 3);
+            $clientrecord->client_secret = '* * * * * * * * * * * * * * * * * *' . substr($clientsecret, -3, 3);
 
             $roles = $DB->get_fieldset_select('local_obf_oauth2_role', 'role_id', 'oauth2_id = ?', array($clientid));
-        }
-        else {
+        } else {
             $isadding = true;
             $clientrecord = new stdClass;
             $clientrecord->obf_url = 'https://openbadgefactory.com';
@@ -163,11 +162,10 @@ switch ($action) {
         if ($mform->is_cancelled()) {
             redirect($listclients);
 
-        }
-        else if ($data = $mform->get_data()) {
+        } else if ($data = $mform->get_data()) {
 
             $roles = [];
-            foreach (array_keys((array)$data) as $k) {
+            foreach (array_keys((array) $data) as $k) {
                 if (preg_match('/^role_(\d+)$/', $k, $m) && $data->$k == 1) {
                     $roles[] = $m[1];
                     unset($data->$k);
@@ -177,12 +175,12 @@ switch ($action) {
                 $clientid = $DB->insert_record('local_obf_oauth2', $data, true);
             } else {
                 $clientrecord->client_name = $data->client_name;
-                $clientrecord->client_secret = $client_secret;
+                $clientrecord->client_secret = $clientsecret;
                 $DB->update_record('local_obf_oauth2', $clientrecord);
             }
 
             $DB->delete_records('local_obf_oauth2_role', array('oauth2_id' => $clientid));
-            foreach($roles as $r) {
+            foreach ($roles as $r) {
                 $DB->execute('INSERT INTO {local_obf_oauth2_role} (oauth2_id, role_id) VALUES (?,?)', array($clientid, $r));
             }
 

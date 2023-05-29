@@ -21,7 +21,10 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') or die();
+
+use classes\obf_badge;
+
+defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 
@@ -43,12 +46,14 @@ class obf_issuance_form extends local_obf_form_base {
     private $badge = null;
     /**
      * Course id
+     *
      * @var int
      */
     private $courseid = null;
 
     /**
      * Client id, owner of the badge
+     *
      * @var string
      */
     private $clientid = null;
@@ -58,6 +63,7 @@ class obf_issuance_form extends local_obf_form_base {
      * @var local_obf_renderer
      */
     private $renderer = null;
+
     /**
      * Defines forms elements
      */
@@ -73,32 +79,33 @@ class obf_issuance_form extends local_obf_form_base {
         $this->add_criteria_addendum_elements();
         $this->add_action_buttons(true, get_string('issue', 'local_obf'));
     }
+
     /**
      * Add details elements
      */
     private function add_details_elements() {
         $mform = $this->_form;
         $mform->addElement('header', 'badgedetailsheader',
-                get_string('badgedetails', 'local_obf'));
+            get_string('badgedetails', 'local_obf'));
         $mform->addElement('static', 'badgename',
-                get_string('badgename', 'local_obf'),
-                $this->renderer->print_badge_image($this->badge,
-                        local_obf_renderer::BADGE_IMAGE_SIZE_TINY) .
-                ' ' . s($this->badge->get_name()));
+            get_string('badgename', 'local_obf'),
+            $this->renderer->print_badge_image($this->badge,
+                local_obf_renderer::BADGE_IMAGE_SIZE_TINY) .
+            ' ' . s($this->badge->get_name()));
         $mform->addElement('static', 'badgedescription',
-                get_string('badgedescription', 'local_obf'),
-                s($this->badge->get_description()));
+            get_string('badgedescription', 'local_obf'),
+            s($this->badge->get_description()));
         $mform->addElement('date_selector', 'issuedon',
-                get_string('issuedon', 'local_obf'),
-                array('stopyear' => date('Y') + 1));
+            get_string('issuedon', 'local_obf'),
+            array('stopyear' => date('Y') + 1));
         $mform->addElement('date_selector', 'expiresby',
-                get_string('expiresby', 'local_obf'),
-                array('optional' => true, 'startyear' => date('Y'),
-                        'stopyear' => date('Y') + 20));
+            get_string('expiresby', 'local_obf'),
+            array('optional' => true, 'startyear' => date('Y'),
+                'stopyear' => date('Y') + 20));
 
         if ($this->badge->has_expiration_date()) {
             $mform->setDefault('expiresby',
-                    $this->badge->get_default_expiration_date());
+                $this->badge->get_default_expiration_date());
         }
     }
 
@@ -108,16 +115,16 @@ class obf_issuance_form extends local_obf_form_base {
     private function add_recipients_elements() {
         $mform = $this->_form;
         $mform->addElement('header', 'badgerecipientsheader',
-                get_string('selectrecipients', 'local_obf'));
+            get_string('selectrecipients', 'local_obf'));
         $excludes = $this->get_user_ids_with_badge_issued();
         $mform->registerElementType('obf_user_selector', __FILE__,
-                'MoodleQuickForm_userselector');
+            'MoodleQuickForm_userselector');
         $mform->addElement('obf_user_selector', 'recipientlist',
-                get_string('selectrecipients', 'local_obf'),
-                array('courseid' => $this->courseid),
-                array('exclude' => $excludes));
+            get_string('selectrecipients', 'local_obf'),
+            array('courseid' => $this->courseid),
+            array('exclude' => $excludes));
         $mform->addRule('recipientlist',
-                get_string('selectatleastonerecipient', 'local_obf'), 'required');
+            get_string('selectatleastonerecipient', 'local_obf'), 'required');
     }
 
     /**
@@ -128,10 +135,10 @@ class obf_issuance_form extends local_obf_form_base {
 
         $mform = $this->_form;
         $mform->addElement('header', 'badgeemailheader',
-                get_string('editemailmessage', 'local_obf'));
+            get_string('editemailmessage', 'local_obf'));
 
         obf_email_template_form::add_email_fields($mform,
-                $this->badge->get_email());
+            $this->badge->get_email());
     }
 
     /**
@@ -141,7 +148,7 @@ class obf_issuance_form extends local_obf_form_base {
 
         $mform = $this->_form;
         $mform->addElement('header', 'badgecriteriaaddendumheader',
-                get_string('criteriaaddendumheader', 'local_obf'));
+            get_string('criteriaaddendumheader', 'local_obf'));
 
         $mform->addElement('advcheckbox', 'addcriteriaaddendum', get_string('criteriaaddendumadd', 'local_obf'));
         $mform->addElement('textarea', 'criteriaaddendum', get_string('criteriaaddendum', 'local_obf'));
@@ -150,6 +157,7 @@ class obf_issuance_form extends local_obf_form_base {
 
     /**
      * Get user ids with badge issued.
+     *
      * @return int[]
      */
     private function get_user_ids_with_badge_issued() {
@@ -174,8 +182,9 @@ class obf_issuance_form extends local_obf_form_base {
 
     /**
      * Validation.
-     * @param  stdClass $data
-     * @param  array $files
+     *
+     * @param stdClass $data
+     * @param array $files
      * @return array
      */
     public function validation($data, $files) {
@@ -199,22 +208,26 @@ class MoodleQuickForm_userselector extends HTML_QuickForm_element {
 
     /**
      * User selector.
+     *
      * @var badge_recipient_selector
      */
     protected $userselector;
     /**
      * HTML string.
+     *
      * @var string
      */
     protected $strHtml;
     /**
      * Name.
+     *
      * @var string
      */
     protected $name = '';
 
     /**
      * Constructor.
+     *
      * @param string $name
      * @param string $label
      * @param array $options
@@ -224,7 +237,7 @@ class MoodleQuickForm_userselector extends HTML_QuickForm_element {
         parent::__construct($name, $label, $attributes);
         $this->setName($name);
         $this->userselector = new badge_recipient_selector($name,
-                $options);
+            $options);
         $this->userselector->set_multiselect(true);
 
         if (is_array($attributes) && isset($attributes['exclude'])) {
@@ -234,6 +247,7 @@ class MoodleQuickForm_userselector extends HTML_QuickForm_element {
 
     /**
      * Get name.
+     *
      * @return string
      */
     public function getName() {
@@ -242,6 +256,7 @@ class MoodleQuickForm_userselector extends HTML_QuickForm_element {
 
     /**
      * Set name.
+     *
      * @param string $name
      */
     public function setName($name) {
@@ -250,6 +265,7 @@ class MoodleQuickForm_userselector extends HTML_QuickForm_element {
 
     /**
      * Get HTML of this selector element.
+     *
      * @return string HTML
      */
     public function toHtml() {
@@ -259,6 +275,7 @@ class MoodleQuickForm_userselector extends HTML_QuickForm_element {
 
     /**
      * Get value.
+     *
      * @return mixed
      */
     public function getValue() {
@@ -281,17 +298,20 @@ class badge_recipient_selector extends user_selector_base {
 
     /**
      * Recipients who have already received the badge.
+     *
      * @var array
      */
     private $existingrecipients = array();
     /**
      * Course id.
+     *
      * @var int
      */
     private $courseid = null;
 
     /**
      * Constructor.
+     *
      * @param string $name
      * @param array $options
      */
@@ -305,6 +325,7 @@ class badge_recipient_selector extends user_selector_base {
 
     /**
      * Get options.
+     *
      * @return array
      */
     protected function get_options() {
@@ -316,6 +337,7 @@ class badge_recipient_selector extends user_selector_base {
 
     /**
      * Set course id.
+     *
      * @param int $id
      */
     public function set_courseid($id) {
@@ -345,7 +367,7 @@ class badge_recipient_selector extends user_selector_base {
         // Select only users without the current badge.
         if (count($this->existingrecipients) > 0) {
             list($emailin, $emailparams) = $DB->get_in_or_equal($this->existingrecipients,
-                    SQL_PARAMS_NAMED, 'obf', false);
+                SQL_PARAMS_NAMED, 'obf', false);
             $whereclauses[] = 'u.email ' . $emailin;
             $params = array_merge($params, $emailparams);
         }
@@ -359,7 +381,7 @@ class badge_recipient_selector extends user_selector_base {
         if (!empty($this->courseid)) {
             $context = context_course::instance($this->courseid);
             list ($enrolledsql, $enrolledparams) = get_enrolled_sql($context,
-                    'local/obf:earnbadge', 0, true);
+                'local/obf:earnbadge', 0, true);
             $params = array_merge($params, $enrolledparams);
         }
 
@@ -386,7 +408,7 @@ class badge_recipient_selector extends user_selector_base {
         }
 
         $users = $DB->get_records_sql($fields . $sql . $orderby,
-                array_merge($params, $sortparams));
+            array_merge($params, $sortparams));
 
         return array(get_string('recipientcandidates', 'local_obf') => $users);
     }

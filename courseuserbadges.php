@@ -21,9 +21,14 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+use classes\obf_assertion;
+use classes\obf_badge;
+use classes\obf_client;
+
 require_once(__DIR__ . '/../../config.php');
-require_once(__DIR__ . '/class/badge.php');
-require_once(__DIR__ . '/class/event.php');
+require_once(__DIR__ . '/classes/badge.php');
+require_once(__DIR__ . '/classes/event.php');
 
 $clientid = optional_param('clientid', null, PARAM_ALPHANUM);
 
@@ -33,8 +38,8 @@ $badgeid = optional_param('id', '', PARAM_ALPHANUM);
 $courseid = optional_param('courseid', 1, PARAM_INT);
 $action = optional_param('action', 'badges', PARAM_ALPHANUM);
 $url = new moodle_url('/local/obf/courseuserbadges.php',
-        array('courseid' => $courseid, 'action' => $action));
-$curr_page = optional_param('page', '0', PARAM_INT);
+    array('courseid' => $courseid, 'action' => $action));
+$currpage = optional_param('page', '0', PARAM_INT);
 $context = context_course::instance($courseid);
 $onlydetailstab = 1;
 
@@ -52,7 +57,7 @@ switch ($action) {
         require_capability('local/obf:viewdetails', $context);
         $client = obf_client::get_instance();
         $show = optional_param('show', 'details', PARAM_ALPHANUM);
-        $coursebadgeurl =  new moodle_url('/local/obf/courseuserbadges.php',
+        $coursebadgeurl = new moodle_url('/local/obf/courseuserbadges.php',
             array('action' => 'show', 'id' => $badgeid));
 
         $PAGE->navbar->add(get_string('siteadmin', 'local_obf'),
@@ -85,24 +90,24 @@ switch ($action) {
         require_capability('local/obf:viewhistory', $context);
         $client = obf_client::get_instance();
 
-        $search_params = array(
+        $searchparams = array(
             'api_consumer_id' => OBF_API_CONSUMER_ID,
             'log_entry' => '"course_id":"' . $courseid . '"',
             'count_only' => 1
         );
-        $res = $client->get_assertions(null, null, $search_params);
+        $res = $client->get_assertions(null, null, $searchparams);
 
         $historysize = $res[0]['result_count'];
 
-        $search_params['count_only'] = 0;
-        $search_params['limit'] = 10;
-        $search_params['offset'] = $curr_page * 10;
-        $search_params['order_by'] = 'asc';
+        $searchparams['count_only'] = 0;
+        $searchparams['limit'] = 10;
+        $searchparams['offset'] = $currpage * 10;
+        $searchparams['order_by'] = 'asc';
 
-        $history = obf_assertion::get_assertions($client, null, null, -1, false, $search_params);
+        $history = obf_assertion::get_assertions($client, null, null, -1, false, $searchparams);
 
-        $content  = $PAGE->get_renderer('local_obf')->render_client_selector($url, $clientid);
-        $content .= $PAGE->get_renderer('local_obf')->print_issuing_history($client, $context, $historysize, $curr_page, $history);
+        $content = $PAGE->get_renderer('local_obf')->render_client_selector($url, $clientid);
+        $content .= $PAGE->get_renderer('local_obf')->print_issuing_history($client, $context, $historysize, $currpage, $history);
         break;
 }
 

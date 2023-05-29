@@ -22,9 +22,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use classes\criterion\obf_criterion;
+use classes\criterion\obf_criterion_item;
+use classes\obf_badge;
+use classes\obf_client;
+
 require_once(__DIR__ . '/../../config.php');
-require_once(__DIR__ . '/class/criterion/course.php');
-require_once(__DIR__ . "/class/badge.php");
+require_once(__DIR__ . '/classes/criterion/course.php');
+require_once(__DIR__ . "/classes/badge.php");
 
 $clientid = required_param('clientid', PARAM_ALPHANUM);
 
@@ -40,29 +45,28 @@ $content = '';
 
 require_login();
 
-
 $PAGE->set_context($context);
 $PAGE->set_url(new moodle_url('/local/obf/criterion.php',
-        array('action' => $action,
-    'id' => $id, 'badgeid' => $badgeid, 'type' => $type)));
+    array('action' => $action,
+        'id' => $id, 'badgeid' => $badgeid, 'type' => $type)));
 $PAGE->set_title(get_string('obf', 'local_obf'));
 $PAGE->set_pagelayout('admin');
 $PAGE->requires->jquery_plugin('obf-simplemde', 'local_obf');
 $PAGE->requires->jquery_plugin('obf-criteria-markdown', 'local_obf');
 
 navigation_node::override_active_url(new moodle_url('/local/obf/badge.php',
-        array('action' => 'list')));
+    array('action' => 'list')));
 
 $badge = obf_badge::get_instance($badgeid);
 
 $PAGE->navbar->add($badge->get_name(),
-        new moodle_url('/local/obf/badge.php',
+    new moodle_url('/local/obf/badge.php',
         array('action' => 'show',
-    'show' => 'details', 'id' => $badgeid)));
+            'show' => 'details', 'id' => $badgeid)));
 $PAGE->navbar->add(get_string('badgecriteria', 'local_obf'),
-        new moodle_url('/local/obf/badge.php',
+    new moodle_url('/local/obf/badge.php',
         array('action' => 'show',
-    'show' => 'criteria', 'id' => $badgeid)));
+            'show' => 'criteria', 'id' => $badgeid)));
 $PAGE->navbar->add(get_string('configurecriteria', 'local_obf'));
 $PAGE->requires->jquery_plugin('obf-chooseprogram', 'local_obf');
 
@@ -74,24 +78,24 @@ switch ($action) {
         require_once(__DIR__ . '/form/criterion.php');
 
         $url = new moodle_url('/local/obf/criterion.php',
-                array('clientid' => $clientid, 'badgeid' => $badge->get_id(),
-            'action' => 'save', 'type' => $type));
+            array('clientid' => $clientid, 'badgeid' => $badge->get_id(),
+                'action' => 'save', 'type' => $type));
         $criterion = new obf_criterion();
         $criterion->set_badge($badge);
         $criterion->set_clientid($clientid);
         $items = $criterion->get_items();
         $criterionform = new obf_criterion_form($url,
-                array('criterion' => $criterion,
+            array('criterion' => $criterion,
                 'addcourse' => $addcourse));
 
         // Form submission was cancelled.
         if ($criterionform->is_cancelled()) {
             redirect(new moodle_url('/local/obf/badge.php',
-                    array('clientid' => $clientid, 'id' => $badge->get_id(), 'action' => 'show', 'show' => 'criteria')));
+                array('clientid' => $clientid, 'id' => $badge->get_id(), 'action' => 'show', 'show' => 'criteria')));
         } else if (!is_null($data = $criterionform->get_data())) { // Form was successfully submitted.
             $criterion->set_completion_method(obf_criterion::CRITERIA_COMPLETION_ALL);
             if (property_exists($data, 'criteriatype')) {
-                $criteriatype = (int)$data->criteriatype;
+                $criteriatype = (int) $data->criteriatype;
             } else {
                 $criteriatype = obf_criterion_item::CRITERIA_TYPE_UNKNOWN;
             }
@@ -114,7 +118,7 @@ switch ($action) {
                     } else {
                         // Check course id validity.
                         $course = $DB->get_record('course',
-                                array('id' => $courseid, 'enablecompletion' => COMPLETION_ENABLED));
+                            array('id' => $courseid, 'enablecompletion' => COMPLETION_ENABLED));
                         if ($course !== false) {
                             $item = obf_criterion_item::build_type($criteriatype);
                             if (array_key_exists($courseid, $grades)) {
@@ -123,7 +127,7 @@ switch ($action) {
                             if (array_key_exists($courseid, $completedbys)) {
                                 $item->set_completedby($completedbys[$courseid]);
                             }
-                            $item->set_courseid((int)$courseid);
+                            $item->set_courseid((int) $courseid);
                             $items[] = $item;
                         }
                     }
@@ -142,7 +146,7 @@ switch ($action) {
             }
             // New for now that courses are set.
             $criterionform = new obf_criterion_form($url,
-                    array('criterion' => $criterion,
+                array('criterion' => $criterion,
                     'addcourse' => $addcourse));
             $data = $criterionform->get_data();
             // We may now have more data
@@ -179,7 +183,7 @@ switch ($action) {
                 }
                 $criterion->set_items($items);
                 $criterionform = new obf_criterion_form($url,
-                        array('criterion' => $criterion,
+                    array('criterion' => $criterion,
                         'addcourse' => !(property_exists($data, 'addcourse') && !empty($data->addcourse)) ? $addcourse : ''));
                 $content .= $PAGE->get_renderer('local_obf')->render($criterionform);
             } else if ($criterion->save() === false) { // Save the criterion object first.
@@ -193,17 +197,17 @@ switch ($action) {
                     }
                     $item->save_params($data);
                 }
-                
+
                 if (empty($tourl)) {
                     $tourl = new moodle_url('/local/obf/badge.php',
-                            array('clientid' => $clientid, 'id' => $badge->get_id(), 'action' => 'show',
-                        'show' => 'criteria'));
+                        array('clientid' => $clientid, 'id' => $badge->get_id(), 'action' => 'show',
+                            'show' => 'criteria'));
                 }
                 if (property_exists($data, 'reviewaftersave') && $data->reviewaftersave) {
                     $recipientcount = $criterion->review_previous_completions();
                     $tourl->param('msg',
-                            get_string('badgewasautomaticallyissued',
-                                    'local_obf', $recipientcount));
+                        get_string('badgewasautomaticallyissued',
+                            'local_obf', $recipientcount));
                 }
                 redirect($tourl);
             }
@@ -218,8 +222,8 @@ switch ($action) {
         require_once(__DIR__ . '/form/criterion.php');
 
         $url = new moodle_url('/local/obf/criterion.php',
-                array('clientid' => $clientid, 'badgeid' => $badge->get_id(),
-            'action' => 'save', 'type' => $type));
+            array('clientid' => $clientid, 'badgeid' => $badge->get_id(),
+                'action' => 'save', 'type' => $type));
         $criterion = new obf_criterion();
         $criterion->set_badge($badge);
         $criterion->set_clientid($clientid);
@@ -235,8 +239,8 @@ switch ($action) {
         require_once(__DIR__ . '/form/criterion.php');
 
         $url = new moodle_url('/local/obf/criterion.php',
-                array('clientid' => $clientid, 'badgeid' => $badge->get_id(),
-            'action' => 'update', 'id' => $id));
+            array('clientid' => $clientid, 'badgeid' => $badge->get_id(),
+                'action' => 'update', 'id' => $id));
         $criterion = obf_criterion::get_instance($id);
 
         if (!$criterion->is_met()) {
@@ -255,7 +259,7 @@ switch ($action) {
 
         if (!empty($addcourse)) {
             $url = new moodle_url('/local/obf/criterion.php',
-                    array('clientid' => $clientid, 'badgeid' => $badge->get_id(), 'id' => $id, 'action' => 'update'));
+                array('clientid' => $clientid, 'badgeid' => $badge->get_id(), 'id' => $id, 'action' => 'update'));
         } else {
             $url = $FULLME;
         }
@@ -265,8 +269,8 @@ switch ($action) {
         // Form was cancelled or editing is prohibited (criterion has already been met).
         if ($criterionform->is_cancelled() || $criterion->is_met()) {
             redirect(new moodle_url('/local/obf/badge.php',
-                    array('clientid' => $clientid, 'id' => $badge->get_id(),
-                'action' => 'show', 'show' => 'criteria')));
+                array('clientid' => $clientid, 'id' => $badge->get_id(),
+                    'action' => 'show', 'show' => 'criteria')));
         } else if (!is_null($data = $criterionform->get_data())) { // Form was successfully submitted, save data.
             // TODO: wrap into a transaction?
             if (!empty($addcourse)) {
@@ -288,8 +292,8 @@ switch ($action) {
                 $criterion->set_items_by_courseids($courseids, $criteriatype);
 
                 $tourl = new moodle_url('/local/obf/criterion.php',
-                        array('clientid' => $clientid, 'badgeid' => $badge->get_id(), 'action' => 'edit',
-                    'id' => $id));
+                    array('clientid' => $clientid, 'badgeid' => $badge->get_id(), 'action' => 'edit',
+                        'id' => $id));
             } else {
                 if (isset($data->completion_method)) {
                     $criterioncompletionmethod = $data->completion_method;
@@ -307,7 +311,6 @@ switch ($action) {
                     $criterion->set_completion_method($criterioncompletionmethod);
                 }
                 $criterion->update();
-                
 
                 $courses = $criterion->get_items(true);
                 $criterioncourseid = count($courses) > 0 ? $courses[0]->get_id() : -1;
@@ -319,10 +322,10 @@ switch ($action) {
                     $criterioncourse->save();
 
                     $tourl = new moodle_url('/local/obf/criterion.php',
-                            array('clientid' => $clientid, 'badgeid' => $badge->get_id(),
+                        array('clientid' => $clientid, 'badgeid' => $badge->get_id(),
                             'action' => 'edit', 'id' => $criterion->get_id()
-                            )
-                         );
+                        )
+                    );
                 } else if ($data->criteriatype == obf_criterion_item::CRITERIA_TYPE_ACTIVITY && !$pickingtype) {
                     $criterioncourse = obf_criterion_item::get_instance($criterioncourseid);
                     if (!$criterioncourse->exists()) {
@@ -340,7 +343,8 @@ switch ($action) {
                         }
                         $criterioncourseid = $criterioncourse->get_id();
                         $criterioncourse->set_grade((int) $grade);
-                        $completedby = property_exists($data, 'completedby_' . $courseid) ? $data->{'completedby_' . $courseid} : null;
+                        $completedby =
+                            property_exists($data, 'completedby_' . $courseid) ? $data->{'completedby_' . $courseid} : null;
                         $criterioncourse->set_completedby($completedby);
                         $criterioncourse->set_criteriatype($data->criteriatype);
                         $criterioncourse->save();
@@ -356,11 +360,10 @@ switch ($action) {
                     $criterioncourse->save_params($data);
                 }
 
-
                 if (empty($tourl)) {
                     $tourl = new moodle_url('/local/obf/badge.php',
-                            array('clientid' => $clientid, 'id' => $badge->get_id(), 'action' => 'show',
-                        'show' => 'criteria'));
+                        array('clientid' => $clientid, 'id' => $badge->get_id(), 'action' => 'show',
+                            'show' => 'criteria'));
                 }
 
                 // If the review-checkbox was selected, let's review the criterion and check whether
@@ -385,8 +388,8 @@ switch ($action) {
         $criterion = obf_criterion::get_instance($id);
         $deletionform = new obf_criterion_deletion_form($FULLME, array('criterion' => $criterion));
         $url = new moodle_url('/local/obf/badge.php',
-                array('clientid' => $clientid, 'action' => 'show', 'show' => 'criteria',
-            'id' => $badgeid));
+            array('clientid' => $clientid, 'action' => 'show', 'show' => 'criteria',
+                'id' => $badgeid));
 
         // Deletion cancelled.
         if ($deletionform->is_cancelled()) {

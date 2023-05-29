@@ -16,15 +16,22 @@
 
 /**
  * Email template form.
+ *
  * @package    local_obf
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+use classes\obf_badge;
+use classes\obf_email;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/obfform.php');
+
 /**
  * Email template form -class.
+ *
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -56,17 +63,18 @@ class obf_email_template_form extends local_obf_form_base {
         $mform->addElement('text', 'emailsubject', get_string('emailsubject', 'local_obf'));
         $mform->setType('emailsubject', PARAM_TEXT);
         $mform->addElement('textarea', 'emailbody', get_string('emailbody', 'local_obf'),
-                array('rows' => 10));
+            array('rows' => 10));
         $mform->setType('emailbody', PARAM_TEXT);
         $mform->addElement('text', 'emaillinktext', get_string('emaillinktext', 'local_obf'));
         $mform->setType('emaillinktext', PARAM_TEXT);
         $mform->addElement('textarea', 'emailfooter', get_string('emailfooter', 'local_obf'),
-                array('rows' => 5));
+            array('rows' => 5));
         $mform->setType('emailfooter', PARAM_TEXT);
 
         if ($email) {
             $mform->setDefaults(array('emailsubject' => $email->get_subject(),
-                'emailbody' => $email->get_body(), 'emaillinktext' => $email->get_link_text(), 'emailfooter' => $email->get_footer()));
+                'emailbody' => $email->get_body(), 'emaillinktext' => $email->get_link_text(),
+                'emailfooter' => $email->get_footer()));
         }
     }
 

@@ -21,10 +21,12 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') or die();
+
+defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/obfform.php');
 require_once(__DIR__ . '/../renderer.php');
+
 /**
  * Revoke form.
  *
@@ -55,7 +57,7 @@ class obf_revoke_form extends local_obf_form_base {
                 $attributes['class'] = 'revoked';
             }
             if ($showrevoke) {
-                $mform->addElement('advcheckbox', 'email['.$i.']', null, $name, $attributes, array(null, $email));
+                $mform->addElement('advcheckbox', 'email[' . $i . ']', null, $name, $attributes, array(null, $email));
             } else {
                 $mform->addElement('html', html_writer::tag('li', $name));
             }
@@ -67,11 +69,11 @@ class obf_revoke_form extends local_obf_form_base {
         }
         if ($showrevoke) {
             $mform->addElement('submit', 'submitbutton',
-                    get_string('revoke', 'local_obf'),
-                    array('class' => 'revokebutton'));
+                get_string('revoke', 'local_obf'),
+                array('class' => 'revokebutton'));
         } else if (!empty($showurl)) {
             $mform->addElement('html', html_writer::tag('div',
-                    html_writer::link($showurl, get_string('revokeuserbadges', 'local_obf')) ));
+                html_writer::link($showurl, get_string('revokeuserbadges', 'local_obf'))));
         }
 
     }

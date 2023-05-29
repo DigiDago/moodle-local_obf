@@ -21,7 +21,6 @@
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Install function. Makes sure path for certificates exists.
@@ -40,24 +39,16 @@ function xmldb_local_obf_install() {
     $backpacksources = array();
 
     $obj = new stdClass();
-    
-    /*
-    $obj->url = 'https://backpack.openbadges.org/displayer/';
-    $obj->fullname = 'Backpack';
-    $obj->shortname = 'moz';
-    $obj->configureableaddress = 1;
-    $backpacksources[] = clone($obj);
-     */
+
     $obj->url = 'https://openbadgepassport.com/displayer/';
     $obj->fullname = 'Open Badge Passport';
     $obj->shortname = 'obp';
     $obj->configureableaddress = 1;
     $backpacksources[] = clone($obj);
     $newids = array();
-    foreach($backpacksources as $key => $backpacksource) {
+    foreach ($backpacksources as $key => $backpacksource) {
         $newids[$obj->shortname] = $DB->insert_record('local_obf_backpack_sources', $backpacksource);
     }
-
 
     return true;
 }
