@@ -33,7 +33,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/client.php');
 require_once(__DIR__ . '/badge.php');
 require_once(__DIR__ . '/collection.php');
-require_once(__DIR__ . '/obfassertioncollection.php');
+require_once(__DIR__ . '/obf_assertion_collection.php');
 
 /**
  * Represents a single event in OBF.
@@ -249,8 +249,8 @@ class obf_assertion {
      *
      * @return array The array.
      */
-    public function toArray() {
-        $badgearr = $this->badge instanceof obf_badge ? $this->badge->toArray() : array();
+    public function toarray() {
+        $badgearr = $this->badge instanceof obf_badge ? $this->badge->toarray() : array();
 
         return array(
             'badge' => $badgearr,
@@ -266,7 +266,7 @@ class obf_assertion {
      * @param obf_badge $badge Get only the assertions containing this badge.
      * @param string $email Get only the assertions related to this email.
      * @param int $limit Limit the amount of results.
-     * @return \classes\obfassertioncollection The assertions.
+     * @return \classes\obf_assertion_collection The assertions.
      */
     public static function get_assertions(obf_client $client,
         obf_badge $badge = null, $email = null, $limit = -1, $geteachseparately = false, $searchparams = array()) {
@@ -275,12 +275,10 @@ class obf_assertion {
         $assertions = array();
 
         if (!$geteachseparately) {
-            /**
-             * Using populated collection for assertions would result in getting
-             * the latest badge data, might not match issued data.
-             * (issued badge data with addendums and changes)
-             *
-             */
+
+            // Using populated collection for assertions would result in getting
+            // the latest badge data, might not match issued data (issued badge data with addendums and changes).
+
             $collection = new obf_badge_collection($client);
             $collection->populate(true);
         }
@@ -293,7 +291,7 @@ class obf_assertion {
                     $b = self::get_assertion_badge($client, $item['badge_id'], $item['id']);
                 } else {
                     $b = $collection->get_badge($item['badge_id']);
-                    if (is_null($b)) { // Required for deleted and draft badges
+                    if (is_null($b)) { // Required for deleted and draft badges.
                         $b = self::get_assertion_badge($client, $item['badge_id'], $item['id']);
                     }
                 }
@@ -328,7 +326,7 @@ class obf_assertion {
             $assertions = array_slice($assertions, 0, $limit);
         }
 
-        return new obfassertioncollection($assertions);
+        return new obf_assertion_collection($assertions);
     }
 
     /**
@@ -338,7 +336,7 @@ class obf_assertion {
      * @param obf_badge $badge Get only the assertions containing this badge.
      * @param string $email Get only the assertions related to this email.
      * @param int $limit Limit the amount of results.
-     * @return \classes\obfassertioncollection The assertions.
+     * @return \classes\obf_assertion_collection The assertions.
      */
     public static function get_assertions_all(obf_client $client, $email) {
 
@@ -373,7 +371,7 @@ class obf_assertion {
                 return $a1->get_issuedon() - $a2->get_issuedon();
             });
 
-        return new obfassertioncollection($assertions);
+        return new obf_assertion_collection($assertions);
     }
 
     /**
@@ -397,8 +395,7 @@ class obf_assertion {
             $badge->set_id($badgeid);
             // We can at the moment assume issuer is the same as the defined client.
             // Because we only get assertions for api_consumer_id
-            // otherwise issuer could also be a suborganisation
-            //$badge->set_issuer_url($arr['issuer']);
+            // otherwise issuer could also be a suborganisation.
 
             return $badge;
         }
@@ -435,7 +432,7 @@ class obf_assertion {
             $assertions = array_slice($assertions, 0, $limit);
         }
 
-        return new obfassertioncollection($assertions);
+        return new obf_assertion_collection($assertions);
     }
 
     /**
@@ -459,7 +456,7 @@ class obf_assertion {
      *
      * @param obf_badge $badge The badge.
      * @param obf_client $client
-     * @return obfassertioncollection The related assertions.
+     * @return obf_assertion_collection The related assertions.
      */
     public static function get_badge_assertions(obf_badge $badge,
         obf_client $client) {

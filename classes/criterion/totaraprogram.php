@@ -252,7 +252,7 @@ class obf_criterion_totaraprogram extends obf_criterion_course {
                 return $u->id;
             }, $users);
         list($insql, $inparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'user');
-        $sql = "SELECT u.id, u.email FROM {user} AS u WHERE id " . $insql;
+        $sql = "SELECT u.id, u.email FROM {user} u WHERE u.id " . $insql;
         $records = $DB->get_records_sql($sql, $inparams);
         foreach ($records as $record) {
             $users[$record->id]->email = $record->email;
@@ -563,7 +563,7 @@ class obf_criterion_totaraprogram extends obf_criterion_course {
 
             $mform->setDefault('expiresbycertificate_global', $this->get_expires_method());
 
-            $obj->setExpanded($mform, 'header_totaraprogramselectexpires', true);
+            $obj->setexpanded($mform, 'header_totaraprogramselectexpires', true);
         }
     }
 

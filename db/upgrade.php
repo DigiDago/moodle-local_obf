@@ -427,7 +427,8 @@ function xmldb_local_obf_upgrade($oldversion) {
 
         // Adding keys to table obf_criterion_params.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
-        $table->add_key('fk_obf_criterion_id', XMLDB_KEY_FOREIGN, array('obf_criterion_id'), 'classes\criterion\obf_criterion', array('id'));
+        $table->add_key('fk_obf_criterion_id', XMLDB_KEY_FOREIGN, array('obf_criterion_id'), 'classes\criterion\obf_criterion',
+            array('id'));
 
         // Conditionally launch create table for obf_criterion_params.
         if (!$dbman->table_exists($table)) {
@@ -498,7 +499,8 @@ function xmldb_local_obf_upgrade($oldversion) {
         // Adding keys to table obf_issue_events.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
         $table->add_key('fk_user_id', XMLDB_KEY_FOREIGN, array('user_id'), 'user', array('id'));
-        $table->add_key('fk_obf_criterion_id', XMLDB_KEY_FOREIGN, array('obf_criterion_id'), 'classes\criterion\obf_criterion', array('id'));
+        $table->add_key('fk_obf_criterion_id', XMLDB_KEY_FOREIGN, array('obf_criterion_id'), 'classes\criterion\obf_criterion',
+            array('id'));
 
         // Conditionally launch create table for obf_issue_events.
         if (!$dbman->table_exists($table)) {
@@ -587,7 +589,7 @@ function xmldb_local_obf_upgrade($oldversion) {
     }
 
     if ($oldversion < 2016031800) {
-        //set default apiurl https://openbadgefactory.com/
+        // Set default apiurl "https://openbadgefactory.com/".
         set_config('apiurl', "https://openbadgefactory.com/", 'local_obf');
         // Obf savepoint reached.
         upgrade_plugin_savepoint(true, 2016031800, 'local', 'obf');
@@ -630,11 +632,11 @@ function xmldb_local_obf_upgrade($oldversion) {
         }
         $newids = $DB->get_records_menu('local_obf_backpack_sources', null, '', 'shortname,id');
 
-        // Alter old backpack associations
+        // Alter old backpack associations.
         $bpetable = new xmldb_table('local_obf_backpack_emails');
         $bpefield = new xmldb_field('backpack_provider', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'groups');
         $dbman->change_field_precision($bpetable, $bpefield);
-        // Update old backpack emails to use new provider definitions
+        // Update old backpack emails to use new provider definitions.
         $DB->execute(
             'UPDATE {local_obf_backpack_emails} SET backpack_provider = IF(backpack_provider = 0, ?, ?)',
             array(
@@ -693,32 +695,6 @@ function xmldb_local_obf_upgrade($oldversion) {
         // Obf savepoint reached.
         upgrade_plugin_savepoint(true, 2016090700, 'local', 'obf');
     }
-
-    /**
-     * FIXME
-     * if ($oldversion < 2016121900) {
-     * require_once(__DIR__ . '/../classes/client.php');
-     * if (class_exists('obf_client') &&
-     * method_exists('obf_client', 'get_client_info') &&
-     * method_exists('obf_client', 'get_branding_image_url')
-     * ) {
-     * try {
-     * if (obf_client::has_client_id()) {
-     * $client = obf_client::get_instance();
-     * $clientinfo = $client->get_client_info();
-     * $images = array('verified_by', 'issued_by');
-     * set_config('verified_client', $clientinfo['verified'] == 1, 'local_obf');
-     * foreach($images as $imagename) {
-     * $imageurl = $client->get_branding_image_url($imagename);
-     * set_config($imagename . '_image_url', $imageurl, 'local_obf');
-     * }
-     * }
-     * } catch (Exception $ex) {
-     * }
-     * }
-     * upgrade_plugin_savepoint(true, 2016121900, 'local', 'obf');
-     * }
-     */
 
     if ($oldversion < 2017010900) {
         set_config('displaymoodlebadges', 0, 'local_obf');
@@ -806,7 +782,7 @@ function xmldb_local_obf_upgrade($oldversion) {
 
     if ($oldversion < 2023041100) {
 
-        // Rename mysql reserved keyword groups -> badge_groups
+        // Rename mysql reserved keyword groups -> badge_groups.
         $table = new xmldb_table('local_obf_backpack_emails');
         $field = new xmldb_field('groups', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'backpack_id');
 

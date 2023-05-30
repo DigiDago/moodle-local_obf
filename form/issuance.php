@@ -217,7 +217,7 @@ class MoodleQuickForm_userselector extends HTML_QuickForm_element {
      *
      * @var string
      */
-    protected $strHtml;
+    protected $strhtml;
     /**
      * Name.
      *
@@ -235,7 +235,7 @@ class MoodleQuickForm_userselector extends HTML_QuickForm_element {
      */
     public function __construct($name = null, $label = null, $options = null, $attributes = null) {
         parent::__construct($name, $label, $attributes);
-        $this->setName($name);
+        $this->set_name($name);
         $this->userselector = new badge_recipient_selector($name,
             $options);
         $this->userselector->set_multiselect(true);
@@ -250,7 +250,7 @@ class MoodleQuickForm_userselector extends HTML_QuickForm_element {
      *
      * @return string
      */
-    public function getName() {
+    public function get_name() {
         return $this->name;
     }
 
@@ -259,7 +259,7 @@ class MoodleQuickForm_userselector extends HTML_QuickForm_element {
      *
      * @param string $name
      */
-    public function setName($name) {
+    public function set_name($name) {
         $this->name = $name;
     }
 
@@ -268,9 +268,9 @@ class MoodleQuickForm_userselector extends HTML_QuickForm_element {
      *
      * @return string HTML
      */
-    public function toHtml() {
-        $this->strHtml = $this->userselector->display(true);
-        return $this->strHtml;
+    public function tohtml() {
+        $this->strhtml = $this->userselector->display(true);
+        return $this->strhtml;
     }
 
     /**
@@ -278,7 +278,7 @@ class MoodleQuickForm_userselector extends HTML_QuickForm_element {
      *
      * @return mixed
      */
-    public function getValue() {
+    public function get_value() {
         return $this->userselector->get_selected_users();
     }
 

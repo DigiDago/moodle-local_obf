@@ -55,10 +55,10 @@ abstract class local_obf_form_base extends moodleform {
      * @param string $header
      * @param bool $expand
      */
-    public function setExpanded(&$mform, $header, $expand = true) {
-        // Moodle 2.2 doesn't have setExpanded.
-        if (method_exists($mform, 'setExpanded')) {
-            $mform->setExpanded($header, $expand);
+    public function setexpanded(&$mform, $header, $expand = true) {
+        // Moodle 2.2 doesn't have setexpanded.
+        if (method_exists($mform, 'setexpanded')) {
+            $mform->setexpanded($header, $expand);
         }
     }
 

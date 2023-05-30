@@ -35,7 +35,7 @@ function xmldb_local_obf_install() {
         mkdir($newpkidir, $CFG->directorypermissions, true);
     }
 
-    // Set default backpack sources
+    // Set default backpack sources.
     $backpacksources = array();
 
     $obj = new stdClass();
@@ -46,7 +46,7 @@ function xmldb_local_obf_install() {
     $obj->configureableaddress = 1;
     $backpacksources[] = clone($obj);
     $newids = array();
-    foreach ($backpacksources as $key => $backpacksource) {
+    foreach ($backpacksources as $backpacksource) {
         $newids[$obj->shortname] = $DB->insert_record('local_obf_backpack_sources', $backpacksource);
     }
 

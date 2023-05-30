@@ -27,25 +27,20 @@ use classes\obf_backpack;
 use classes\obf_blacklist;
 use classes\obf_client;
 use classes\obf_user_preferences;
-use classes\obfassertioncollection;
+use classes\obf_assertion_collection;
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * OBF_DEFAULT_ADDRESS - The URL of Open Badge Factory.
- */
+// OBF_DEFAULT_ADDRESS - The URL of Open Badge Factory.
 if (!defined('OBF_DEFAULT_ADDRESS')) {
     define('OBF_DEFAULT_ADDRESS', 'https://openbadgefactory.com/');
 }
 
-/**
- * OBF_API_CONSUMER_ID - The consumer id used in API requests.
- */
+
+// OBF_API_CONSUMER_ID - The consumer id used in API requests.
 define('OBF_API_CONSUMER_ID', 'Moodle');
 
-/**
- * OBF API error codes.
- */
+// OBF API error codes.
 define('OBF_API_CODE_CERT_ERROR', 495);
 define('OBF_API_CODE_NO_CERT', 496);
 
@@ -274,7 +269,7 @@ function local_obf_myprofile_navigation(\core_user\output\myprofile\tree $tree, 
         $badgeslibfile = $CFG->libdir . '/badgeslib.php';
 
         if (file_exists($badgeslibfile) && true !== get_config('enablebadges') && get_config('local_obf', 'displaymoodlebadges')) {
-            $moodleassertions = new obfassertioncollection();
+            $moodleassertions = new obf_assertion_collection();
             require_once($badgeslibfile);
             $moodleassertions->add_collection(obf_assertion::get_user_moodle_badge_assertions($user->id));
 
@@ -299,7 +294,7 @@ function local_obf_myprofile_navigation(\core_user\output\myprofile\tree $tree, 
  *
  * @param int $userid
  * @param moodle_database $db
- * @return obfassertioncollection
+ * @return obf_assertion_collection
  */
 function local_obf_myprofile_get_assertions($userid, $db) {
     $cache = cache::make('local_obf', 'obf_assertions');
@@ -308,7 +303,7 @@ function local_obf_myprofile_get_assertions($userid, $db) {
     if (!$assertions) {
         require_once(__DIR__ . '/classes/blacklist.php');
         // Get user's badges in OBF.
-        $assertions = new obfassertioncollection();
+        $assertions = new obf_assertion_collection();
         try {
             $client = obf_client::get_instance();
             $blacklist = new obf_blacklist($userid);
@@ -321,7 +316,7 @@ function local_obf_myprofile_get_assertions($userid, $db) {
             $assertions->add_collection(obf_assertion::get_assertions($client,
                 null, $db->get_record('user', array('id' => $userid))->email, -1, true));
 
-            //Get badges issued with previous emails
+            // Get badges issued with previous emails.
             if ($deletedemailscount >= 1) {
                 foreach ($deleted as $email) {
                     $assertions->add_collection(obf_assertion::get_assertions($client, null,
@@ -334,7 +329,7 @@ function local_obf_myprofile_get_assertions($userid, $db) {
             debugging('Getting OBF assertions for user id: ' . $userid . ' failed: ' . $e->getMessage());
         }
 
-        $assertions->toArray(); // This makes sure issuer objects are populated and cached.
+        $assertions->toarray(); // This makes sure issuer objects are populated and cached.
         $cache->set($userid, $assertions);
     }
     return $assertions;
@@ -346,12 +341,12 @@ function local_obf_myprofile_get_assertions($userid, $db) {
  * @param int $userid
  * @param int $provider Backpack provider. obf_backpack::BACKPACK_PROVIDER_*.
  * @param moodle_database $db
- * @return obfassertioncollection
+ * @return obf_assertion_collection
  */
 function local_obf_myprofile_get_backpack_badges($userid, $provider, $db) {
     $backpack = obf_backpack::get_instance_by_userid($userid, $db, $provider);
     if ($backpack === false || count($backpack->get_group_ids()) == 0) {
-        return new obfassertioncollection();
+        return new obf_assertion_collection();
     }
     $cache = cache::make('local_obf', 'obf_assertions_backpacks');
     $userassertions = get_config('local_obf', 'disableassertioncache') ? null : $cache->get($userid);
@@ -362,7 +357,7 @@ function local_obf_myprofile_get_backpack_badges($userid, $provider, $db) {
         if (!is_array($userassertions)) {
             $userassertions = array();
         }
-        $assertions = new obfassertioncollection();
+        $assertions = new obf_assertion_collection();
         try {
             $client = obf_client::get_instance();
             $blacklist = new obf_blacklist($userid);
@@ -372,7 +367,7 @@ function local_obf_myprofile_get_backpack_badges($userid, $provider, $db) {
             debugging('Getting OBF assertions for user id: ' . $userid . ' failed: ' . $e->getMessage());
         }
 
-        $assertions->toArray(); // This makes sure issuer objects are populated and cached.
+        $assertions->toarray(); // This makes sure issuer objects are populated and cached.
         $userassertions[$shortname] = $assertions;
         $cache->set($userid, $userassertions);
     }

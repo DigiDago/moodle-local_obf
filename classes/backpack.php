@@ -42,7 +42,7 @@ use Userid;
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/obf_assertion.php');
-require_once(__DIR__ . '/obfassertioncollection.php');
+require_once(__DIR__ . '/obf_assertion_collection.php');
 
 /**
  * Class for handling the communication between the plugin and Mozilla Backpack.
@@ -466,7 +466,7 @@ class obf_backpack {
      *
      * @param mixed $groupid
      * @param int $limit
-     * @return obfassertioncollection Assertions in the group
+     * @return obf_assertion_collection Assertions in the group
      */
     public function get_group_assertions($groupid, $limit = -1) {
         if ($this->backpackid < 0) {
@@ -476,7 +476,7 @@ class obf_backpack {
         $curl = $this->get_transport();
         $output = $curl->get($this->get_apiurl() . $this->get_backpack_id() . '/group/' . $groupid . '.json');
         $json = json_decode($output);
-        $assertions = new obfassertioncollection();
+        $assertions = new obf_assertion_collection();
 
         if (isset($json->badges)) {
             foreach ($json->badges as $item) {
@@ -510,7 +510,7 @@ class obf_backpack {
      * Get backpack assertions for all allowed groups.
      *
      * @param int $limit
-     * @return \classes\obfassertioncollection
+     * @return \classes\obf_assertion_collection
      * @throws Exception
      */
     public function get_assertions($limit = -1) {
@@ -518,7 +518,7 @@ class obf_backpack {
             throw new Exception('No badge groups selected.');
         }
 
-        $assertions = new obfassertioncollection();
+        $assertions = new obf_assertion_collection();
 
         foreach ($this->badge_groups as $groupid) {
             $assertions->add_collection($this->get_group_assertions($groupid));
@@ -538,7 +538,7 @@ class obf_backpack {
         $ret = array();
 
         foreach ($assertions as $assertion) {
-            $ret[] = $assertion->toArray();
+            $ret[] = $assertion->toarray();
         }
 
         return $ret;

@@ -24,7 +24,7 @@
 
 use classes\obf_backpack;
 use classes\obf_user_preferences;
-use classes\obfassertioncollection;
+use classes\obf_assertion_collection;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -55,15 +55,15 @@ class obf_userconfig_form extends local_obf_form_base {
         $usersdisplaybadges = get_config('local_obf', 'usersdisplaybadges');
         if ($usersdisplaybadges != obf_user_preferences::USERS_FORCED_TO_DISPLAY_BADGES &&
             $usersdisplaybadges != obf_user_preferences::USERS_NOT_ALLOWED_TO_DISPLAY_BADGES) {
-            // Users can manage displayment of badges
+            // Users can manage displayment of badges.
             $mform->addElement('header', 'header_userprefeferences_fields',
                 get_string('userpreferences', 'local_obf'));
-            $this->setExpanded($mform, 'header_userprefeferences_fields');
+            $this->setexpanded($mform, 'header_userprefeferences_fields');
 
             $mform->addElement('advcheckbox', 'badgesonprofile', get_string('showbadgesonmyprofile', 'local_obf'));
             $mform->setDefault('badgesonprofile', $userpreferences->get_preference('badgesonprofile'));
         } else {
-            // Users cannot modify the value
+            // Users cannot modify the value.
             $displaybadges = $usersdisplaybadges == obf_user_preferences::USERS_FORCED_TO_DISPLAY_BADGES;
             $mform->addElement('hidden', 'badgesonprofile', $displaybadges);
             $mform->setType('badgesonprofile', PARAM_INT);
@@ -97,17 +97,7 @@ class obf_userconfig_form extends local_obf_form_base {
 
         $mform->addElement('header', 'header_' . $backpack->get_providershortname() . 'backpack_fields',
             get_string('backpackprovidersettings', 'local_obf', $providername));
-        $this->setExpanded($mform, 'header_' . $backpack->get_providershortname() . 'backpack_fields', false);
-
-        /*if ($provider == obf_backpack::BACKPACK_PROVIDER_MOZILLA) {
-            $mform->addElement('header', 'header_backpack_fields',
-                    get_string('backpacksettings', 'local_obf'));
-            $this->setExpanded($mform, 'header_backpack_fields', false);
-        } else if ($provider == obf_backpack::BACKPACK_PROVIDER_OBP) {
-            $mform->addElement('header', 'header_obpbackpack_fields',
-                    get_string('obpbackpacksettings', 'local_obf'));
-            $this->setExpanded($mform, 'header_obpbackpack_fields', false);
-        }*/
+        $this->setexpanded($mform, 'header_' . $backpack->get_providershortname() . 'backpack_fields', false);
 
         $statustext = html_writer::tag('span', get_string($langkey, 'local_obf'),
             array('class' => $langkey));
@@ -170,15 +160,14 @@ class obf_userconfig_form extends local_obf_form_base {
     /**
      * Render badge group.
      *
-     * @param obfassertioncollection $assertions
+     * @param obf_assertion_collection $assertions
      * @return string HTML.
      */
-    private function render_badge_group(obfassertioncollection $assertions) {
+    private function render_badge_group(obf_assertion_collection $assertions) {
         global $PAGE;
 
         $items = array();
         $renderer = $PAGE->get_renderer('local_obf');
-        $size = -1;
 
         for ($i = 0; $i < count($assertions); $i++) {
             $assertion = $assertions->get_assertion($i);

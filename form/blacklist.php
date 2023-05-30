@@ -25,7 +25,7 @@
 use classes\obf_assertion;
 use classes\obf_blacklist;
 use classes\obf_client;
-use classes\obfassertioncollection;
+use classes\obf_assertion_collection;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -54,7 +54,7 @@ class obf_blacklist_form extends local_obf_form_base {
         $this->blacklist = $this->_customdata['blacklist'];
         $user = $this->_customdata['user'];
         $client = obf_client::get_instance();
-        $uniqueassertions = new obfassertioncollection();
+        $uniqueassertions = new obf_assertion_collection();
         try {
             $assertions = obf_assertion::get_assertions_all($client, null, $user->email);
         } catch (Exception $ex) {
@@ -71,10 +71,10 @@ class obf_blacklist_form extends local_obf_form_base {
     /**
      * Render badges that are blacklistable.
      *
-     * @param obfassertioncollection $assertions
+     * @param obf_assertion_collection $assertions
      * @param MoodleQuickForm& $mform
      */
-    private function render_badges(obfassertioncollection $assertions, &$mform) {
+    private function render_badges(obf_assertion_collection $assertions, &$mform) {
         global $PAGE, $OUTPUT;
 
         $items = array();

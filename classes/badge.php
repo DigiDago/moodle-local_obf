@@ -38,7 +38,7 @@ require_once(__DIR__ . '/client.php');
 require_once(__DIR__ . '/email.php');
 require_once(__DIR__ . '/criterion/criterion.php');
 require_once(__DIR__ . '/obf_assertion.php');
-require_once(__DIR__ . '/obfassertioncollection.php');
+require_once(__DIR__ . '/obf_assertion_collection.php');
 
 /**
  * Class for a Open Badge Factory -badge.
@@ -486,7 +486,7 @@ class obf_badge {
     /**
      * Get assertions related to this badge.
      *
-     * @return obfassertioncollection The assertions.
+     * @return obf_assertion_collection The assertions.
      */
     public function get_assertions() {
         return obf_assertion::get_badge_assertions($this, $this->get_client());
@@ -615,10 +615,10 @@ class obf_badge {
      *
      * @return array The badge data as an array.
      */
-    public function toArray() {
+    public function toarray() {
         return array(
             'id' => $this->get_id(),
-            'issuer' => $this->get_issuer()->toArray(),
+            'issuer' => $this->get_issuer()->toarray(),
             'name' => $this->get_name(),
             'image' => $this->get_image(),
             'description' => $this->get_description(),

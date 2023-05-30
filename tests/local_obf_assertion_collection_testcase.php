@@ -25,16 +25,16 @@
 use classes\obf_assertion;
 use classes\obf_badge;
 use classes\obf_issuer;
-use classes\obfassertioncollection;
+use classes\obf_assertion_collection;
 
 /**
- * Description of obfassertioncollection_test
+ * Description of obf_assertion_collection_test
  *
  * @author olli
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class local_obfassertioncollection_testcase extends advanced_testcase {
+class local_obf_assertion_collection_testcase extends advanced_testcase {
     /**
      * Test assertion collection.
      */
@@ -57,15 +57,15 @@ class local_obfassertioncollection_testcase extends advanced_testcase {
         $assertion4 = obf_assertion::get_instance()->set_badge($badge4);
 
         $assertions = array($assertion1, $assertion2);
-        $collection = new obfassertioncollection($assertions);
-        $collection2 = new obfassertioncollection(array($assertion1, $assertion4));
+        $collection = new obf_assertion_collection($assertions);
+        $collection2 = new obf_assertion_collection(array($assertion1, $assertion4));
 
         $this->assertEquals(2, $collection->count());
 
         $collection->add_assertion($assertion3);
 
         $this->assertEquals(3, $collection->count());
-        $this->assertCount(3, $collection->toArray());
+        $this->assertCount(3, $collection->toarray());
 
         $collection->add_collection($collection2);
 

@@ -38,7 +38,7 @@ $context = context_user::instance($userid);
 if ((int) $USER->id === $userid) {
     require_capability('local/obf:viewownbackpack', $context);
 } else {
-    // TODO: more specific capabilities?
+    // More specific capabilities.
     require_capability('local/obf:viewbackpack', $context);
 }
 

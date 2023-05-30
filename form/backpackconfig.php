@@ -77,7 +77,7 @@ class obf_backpack_config extends local_obf_form_base {
         $this->add_action_buttons();
     }
 
-    // Perform some extra validation
+    // Perform some extra validation.
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
         if (array_key_exists('url', $data)) {
@@ -87,7 +87,7 @@ class obf_backpack_config extends local_obf_form_base {
                 $errors['url'] = get_string('backpackproviderurlinvalid', 'local_obf');
             } else {
                 try {
-                    $reachable = obf_backpack::test_api_url($data['url']);
+                    obf_backpack::test_api_url($data['url']);
                 } catch (\Exception $ex) {
                     $errors['url'] = $ex->getMessage();
                 }

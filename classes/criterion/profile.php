@@ -1,25 +1,25 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/*
- * Copyright (c) 2020 Open Badge Factory Oy
-
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished
- * to do so, subject to the following conditions:
-
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
-
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+/**
+ * Profile.
+ *
+ * @package    local_obf
+ * @copyright  2013-2020, Open Badge Factory Oy
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace classes\criterion;
@@ -237,7 +237,9 @@ class obf_criterion_profile extends obf_criterion_course {
 
         // Get custom fields.
         $cfields = $DB->get_records_sql($sql);
-        $cfids = array_map(create_function('$o', 'return $o->fieldid;'), $cfields);
+        $cfids = array_map(function($o) {
+            return $o->fieldid;
+        }, $cfields);
 
         if ($this->id !== 0) {
             $existing = array_keys($this->get_params());
@@ -283,7 +285,7 @@ class obf_criterion_profile extends obf_criterion_course {
                 $none = false;
             }
         }
-        $obj->setExpanded($mform, 'first_header', true);
+        $obj->setexpanded($mform, 'first_header', true);
 
         return array($none, get_string('noparamstoadd', 'badges'));
     }
@@ -308,7 +310,7 @@ class obf_criterion_profile extends obf_criterion_course {
 
         $mform->addElement('header', 'header_completion_method',
             get_string('criteriacompletedwhen', 'local_obf'));
-        $obj->setExpanded($mform, 'header_completion_method');
+        $obj->setexpanded($mform, 'header_completion_method');
         $mform->addGroup($radiobuttons, 'radioar', '', '<br />', false);
         $criterion = $this->get_criterion();
         if ($criterion) {

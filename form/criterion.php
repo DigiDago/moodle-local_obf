@@ -26,6 +26,7 @@ use classes\criterion\obf_criterion;
 use classes\criterion\obf_criterion_course;
 use classes\criterion\obf_criterion_item;
 use classes\criterion\obf_criterion_unknown;
+use core\context\coursecat;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -147,17 +148,14 @@ class obf_criterion_form extends local_obf_form_base implements renderable {
                     $values = array_filter($values);
                     $addedkeys = false;
                     foreach ($values as $key => $value) {
-                        # code...
                         if (!empty($value)) {
                             $fullkey = $simplekey . '[' . $key . ']';
                             if (!in_array($fullkey, $elementnames)) {
-                                if (is_array($value)) {
-                                    // TODO: Handle date array("day" => "23", "month" => "12", "year" => "2015","enabled" => "1"})
-                                } else {
+                                if (!is_array($value)) {
                                     $mform->addElement('hidden', $fullkey, $value);
                                     $mform->setType($fullkey, $paramtype);
+                                    $addedkeys = true;
                                 }
-                                $addedkeys = true;
                             }
                         }
                     }
@@ -185,13 +183,16 @@ class obf_criterion_form extends local_obf_form_base implements renderable {
         if (count($courses) > 0) {
             $categories = array();
 
-            if (method_exists('core_course_category', 'make_categories_list')) {// Moodle 3.9
-                $categories = core_course_category::make_categories_list();
-            } else if (method_exists('coursecat', 'make_categories_list')) { // Moodle 3.5
-                $categories = coursecat::make_categories_list();
-            } else { // Moodle 2.2.
-                $parents = array();
-                make_categories_list($categories, $parents);
+            try {
+                if (method_exists('core_course_category', 'make_categories_list')) {
+                    $categories = core_course_category::make_categories_list();
+                } else {
+                    throw new coding_exception("The method 'make_categories_list'
+                     was not found in the 'core_course_category' class.");
+                }
+            } catch (coding_exception $e) {
+                // Handle exception.
+                echo "An error occurred: " . $e->getMessage();
             }
 
             $courselist = $this->initialize_categories($categories);
@@ -201,7 +202,7 @@ class obf_criterion_form extends local_obf_form_base implements renderable {
             }, $existingcourselist);
 
             foreach ($courses as $course) {
-                $hascourse = $this->criterion->exists() ? $this->criterion->has_course($course->id) : false;
+                $hascourse = $this->criterion->exists() && $this->criterion->has_course($course->id);
                 if ($hascourse || !$this->criterion->get_badge()->has_completion_criteria_with_course($course)) {
                     $categoryname = $categories[$course->category];
                     $courselist[$categoryname][$course->id] = format_string($course->fullname,
@@ -218,7 +219,7 @@ class obf_criterion_form extends local_obf_form_base implements renderable {
 
             $mform->addElement('header', 'header_criterion_fields',
                 get_string('selectcourses', 'local_obf'));
-            $this->setExpanded($mform, 'header_criterion_fields');
+            $this->setexpanded($mform, 'header_criterion_fields');
             $mform->addHelpButton('header_criterion_fields', 'readmeenablecompletion', 'local_obf');
 
             // There aren't any courses that aren't already in this badge's criteria.

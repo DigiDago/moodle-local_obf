@@ -40,13 +40,13 @@ class obf_config_oauth2_form extends moodleform {
     private $tokenexpires = 0;
     private $clientname = '';
     private $roles = [];
-    function __construct($actionurl, $isadding, $roles) {
+    public function __construct($actionurl, $isadding, $roles) {
         $this->isadding = $isadding;
         $this->roles = $roles;
         parent::__construct($actionurl);
     }
 
-    function definition() {
+    public function definition() {
         $mform =& $this->_form;
 
         // Then show the fields about where this block appears.
@@ -91,14 +91,14 @@ class obf_config_oauth2_form extends moodleform {
             }
         }
 
-        $submitlabel = null; // Default
+        $submitlabel = null; // Default.
         if ($this->isadding) {
             $submitlabel = get_string('addnewclient', 'local_obf');
         }
         $this->add_action_buttons(true, $submitlabel);
     }
 
-    function validation($data, $files) {
+    public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 
         if ($this->isadding && empty($errors)) {
@@ -120,7 +120,7 @@ class obf_config_oauth2_form extends moodleform {
         return $errors;
     }
 
-    function get_data() {
+    public function get_data() {
         $data = parent::get_data();
         if ($data && $this->isadding) {
             $data->access_token = $this->access_token;
@@ -139,18 +139,6 @@ class obf_config_oauth2_form extends moodleform {
                 ORDER BY r.id";
 
         $canissue = $DB->get_records_sql_menu($sql, array('local/obf:issuebadge'));
-
-        /*
-        $sql = "SELECT r.id FROM {role} r
-                INNER JOIN {role_capabilities} rc ON r.id = rc.roleid
-                WHERE rc.capability = ? AND rc.permission = 1";
-
-        $can_configure = $DB->get_fieldset_sql($sql, array('local/obf:configure'));
-
-        foreach ($can_configure as $id) {
-            unset($canissue[$id]);
-        }
-         */
 
         return $canissue;
     }

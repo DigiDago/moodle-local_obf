@@ -32,7 +32,7 @@ use classes\obf_client;
 /**
  * Behat functions.
  *
- * Currently requires modification to iEnterAValidRequestTokenTo, and usage
+ * Currently requires modification to ienteravalidrequesttokento, and usage
  * of demo OBF accounts as tests delete all badges on OBF after running.
  *
  * @copyright  2013-2020, Open Badge Factory Oy
@@ -48,12 +48,11 @@ class behat_local_obf extends behat_base {
      * @param FeatureEvent $event
      * @AfterFeature
      */
-    public static function teardownFeature(FeatureEvent $event) {
+    public static function teardownfeature(FeatureEvent $event) {
         require_once(__DIR__ . '/../../classes/client.php');
         try {
             obf_client::get_instance()->delete_badges();
         } catch (Exception $e) {
-            // TODO: Do something?
             0 + 0; // Suppressing a PHP_CodeSniffer error message.
         }
 
@@ -62,7 +61,7 @@ class behat_local_obf extends behat_base {
     /**
      * Create pki dir, as install.php can't create it for behat_dataroot.
      */
-    private static function iCreatePkiDir() {
+    private static function icreatepkidir() {
         global $CFG;
         $newpkidir = $CFG->behat_dataroot . '/local_obf/pki/';
 
@@ -80,8 +79,8 @@ class behat_local_obf extends behat_base {
      * @param string $fieldname
      * @Given /^I enter a valid request token to "([^"]*)"$/
      */
-    public function iEnterAValidRequestTokenTo($fieldname) {
-        self::iCreatePkiDir();
+    public function ienteravalidrequesttokento($fieldname) {
+        self::icreatepkidir();
         $session = $this->getSession();
         $seleniumsession = new Session(new Selenium2Driver());
         $seleniumsession->start();
@@ -99,7 +98,7 @@ class behat_local_obf extends behat_base {
         $seleniumsession->wait(5000, "$('#csrtoken-out textarea').length > 0");
 
         $textarea = $seleniumsession->getPage()->find('css', '#csrtoken-out textarea');
-        $token = $textarea->getValue();
+        $token = $textarea->get_value();
         $seleniumsession->stop();
 
         $session->getPage()->fillField($fieldname, $token);
@@ -111,7 +110,7 @@ class behat_local_obf extends behat_base {
      * @param TableNode $badgetable
      * @Given /^the following badges exist:$/
      */
-    public function theFollowingBadgesExist(TableNode $badgetable) {
+    public function thefollowingbadgesexist(TableNode $badgetable) {
         $steps = array();
 
         foreach ($badgetable->getHash() as $hash) {
@@ -150,22 +149,11 @@ TABLE
     }
 
     /**
-     * This step triggers cron like a user would do going to admin/cron.php.
-     *
-     * @Given /^I trigger cron$/
-     */
-    /*
-     * public function iTriggerCron() {
-     *     $this->getSession()->visit($this->locate_path('/admin/cron.php'));
-     * }
-     */
-
-    /**
      * Go to badge list.
      *
      * @Given /^I go to badge list$/
      */
-    public function iGoToBadgeList() {
+    public function igotobadgelist() {
         return array(
             new Given('I am on homepage'),
             new Given('I expand "Site administration" node'),
@@ -181,7 +169,7 @@ TABLE
      * @param stdClass $assignment
      * @Given /^I set "([^"]*)" to be completed when assignment "([^"]*)" is completed$/
      */
-    public function iSetToBeCompletedWhenAssignmentIsCompleted($course, $assignment) {
+    public function isettobecompletedwhenassignmentiscompleted($course, $assignment) {
         return array(
             new Given('I am on homepage'),
             new Given('I follow "' . $course . '"'),
@@ -215,7 +203,7 @@ TABLE
      * @param stdClass $user
      * @Given /^I mark "([^"]*)" of "([^"]*)" completed by "([^"]*)"$/
      */
-    public function iMarkOfCompletedBy($assignment, $course, $user) {
+    public function imarkofcompletedby($assignment, $course, $user) {
         return array(
             new Given('I log in as "' . $user . '"'),
             new Given('I follow "' . $course . '"'),

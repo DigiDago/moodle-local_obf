@@ -136,8 +136,6 @@ switch ($action) {
 
         break;
 
-    ///
-
     case 'edit':
 
         $roles = [];
@@ -146,7 +144,7 @@ switch ($action) {
             $isadding = false;
             $clientrecord = $DB->get_record('local_obf_oauth2', array('id' => $clientid), '*', MUST_EXIST);
             $clientsecret = $clientrecord->client_secret;
-            //mask previusly set client secret in config form
+            // Mask previusly set client secret in config form.
             $clientrecord->client_secret = '* * * * * * * * * * * * * * * * * *' . substr($clientsecret, -3, 3);
 
             $roles = $DB->get_fieldset_select('local_obf_oauth2_role', 'role_id', 'oauth2_id = ?', array($clientid));
@@ -190,8 +188,6 @@ switch ($action) {
             $mform->display();
         }
         break;
-
-    ///
 
     case 'delete':
         if (confirm_sesskey()) {

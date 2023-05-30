@@ -505,7 +505,7 @@ class obf_criterion_course extends obf_criterion_item {
 
                 $mform->addElement('header', 'header_completion_method',
                     get_string('criteriacompletedwhen', 'local_obf'));
-                $obj->setExpanded($mform, 'header_completion_method');
+                $obj->setexpanded($mform, 'header_completion_method');
                 $mform->addGroup($radiobuttons, 'radioar', '', '<br />', false);
                 $mform->setDefault('completion_method', $this->get_criterion()->get_completion_method());
             }
@@ -523,7 +523,7 @@ class obf_criterion_course extends obf_criterion_item {
         if ($this->show_review_options()) {
             $mform->addElement('header', 'header_review_criterion_after_save',
                 get_string('reviewcriterionaftersave', 'local_obf'));
-            $obj->setExpanded($mform, 'header_review_criterion_after_save');
+            $obj->setexpanded($mform, 'header_review_criterion_after_save');
             $mform->addElement('html',
                 $OUTPUT->notification(get_string('warningcannoteditafterreview', 'local_obf')));
             $mform->addElement('advcheckbox', 'reviewaftersave', get_string('reviewcriterionaftersave', 'local_obf'));
@@ -549,7 +549,7 @@ class obf_criterion_course extends obf_criterion_item {
             $useaddendum = !empty($criterion) ? $criterion->get_use_addendum() : false;
 
             if (!empty($addendum)) {
-                $obj->setExpanded($mform, 'header_criteria_addendum');
+                $obj->setexpanded($mform, 'header_criteria_addendum');
             }
 
             $mform->addElement('advcheckbox', 'addcriteriaaddendum', get_string('criteriaaddendumadd', 'local_obf'));

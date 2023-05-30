@@ -26,11 +26,11 @@ use classes\criterion\obf_criterion;
 use classes\obf_assertion;
 use classes\obf_client;
 use classes\obf_issue_event;
-use classes\obfassertioncollection;
+use classes\obf_assertion_collection;
 
 require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/classes/obf_assertion.php');
-require_once(__DIR__ . '/classes/obfassertioncollection.php');
+require_once(__DIR__ . '/classes/obf_assertion_collection.php');
 require_once(__DIR__ . '/classes/criterion/criterion.php');
 require_once(__DIR__ . '/classes/event.php');
 require_once(__DIR__ . '/form/revoke.php');
@@ -138,7 +138,7 @@ switch ($action) {
         $formurl = new moodle_url('/local/obf/event.php', array(
             'id' => $eventid, 'clientid' => $clientid, 'action' => 'revoke', 'course_id' => $courseid
         ));
-        $collection = new obfassertioncollection(array($assertion));
+        $collection = new obf_assertion_collection(array($assertion));
         $users = $collection->get_assertion_users($assertion);
         $showformurl = new moodle_url('/local/obf/event.php', array(
             'id' => $eventid, 'clientid' => $clientid, 'action' => 'view', 'course_id' => $courseid, 'show' => 'revoke'

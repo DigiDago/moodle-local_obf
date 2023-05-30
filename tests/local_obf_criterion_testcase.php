@@ -167,7 +167,7 @@ class local_obf_criterion_testcase extends advanced_testcase {
         $criterionevents = obf_issue_event::get_criterion_events($criterion);
         $this->assertCount(0, $criterionevents);
 
-        $criterionevents = obf_issue_event::get_criterion_events($criterion2); // Any
+        $criterionevents = obf_issue_event::get_criterion_events($criterion2); // Any.
         $this->assertCount(0, $criterionevents);
 
         $user->phone1 = '0401234567';
@@ -176,7 +176,7 @@ class local_obf_criterion_testcase extends advanced_testcase {
         $criterionevents = obf_issue_event::get_criterion_events($criterion);
         $this->assertCount(0, $criterionevents, 'All aggregation fired event');
 
-        $criterionevents = obf_issue_event::get_criterion_events($criterion2); // Any
+        $criterionevents = obf_issue_event::get_criterion_events($criterion2); // Any.
         $this->assertCount(1, $criterionevents, 'Any aggregation did not fire event');
 
         $user->city = 'Oulu';

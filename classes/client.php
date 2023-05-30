@@ -398,7 +398,7 @@ class obf_client {
      * @return string The response string.
      * @throws Exception In case something goes wrong.
      */
-    private function request($method, $url, $params = array(), $retry = true, $otheroauth2 = null) {
+    public function request($method, $url = '', $params = array(), $retry = true, $otheroauth2 = null) {
         global $DB;
 
         $curl = $this->get_transport();

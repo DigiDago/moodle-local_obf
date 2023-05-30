@@ -76,7 +76,6 @@ switch ($action) {
             $backpack->connect($email);
         } catch (Exception $e) {
             $return['error'] = $e->getMessage();
-            //die(json_encode(array('error' => $e->getMessage())));
         }
 
         break;
@@ -91,7 +90,7 @@ switch ($action) {
 
         break;
     case 'verify_token':
-        // TODO: Capability check, is user allowed to verify emails
+        // TODO: Capability check, is user allowed to verify emails.
         try {
             list($userid, $email, $token) = parse_json_assertion($assertion);
             $status = obf_user_email::is_user_email_verified($userid, $email, $token);

@@ -25,14 +25,14 @@
 use classes\obf_assertion;
 use classes\obf_blacklist;
 use classes\obf_client;
-use classes\obfassertioncollection;
+use classes\obf_assertion_collection;
 
 define('AJAX_SCRIPT', true);
 
 require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/classes/obf_assertion.php');
 require_once(__DIR__ . '/classes/blacklist.php');
-require_once(__DIR__ . '/classes/obfassertioncollection.php');
+require_once(__DIR__ . '/classes/obf_assertion_collection.php');
 
 require_login(); // TODO: Handle login requirement more gracefully for more useful error messages?
 
@@ -41,7 +41,7 @@ $context = context_user::instance($userid);
 
 $client = obf_client::get_instance();
 $blacklist = new obf_blacklist($userid);
-$assertions = new obfassertioncollection();
+$assertions = new obf_assertion_collection();
 $assertions->add_collection(obf_assertion::get_assertions_all($client, $DB->get_record('user', array('id' => $userid))->email));
 $assertions->apply_blacklist($blacklist);
 
@@ -52,4 +52,4 @@ if ((int) $USER->id === $userid) {
     require_capability('local/obf:viewbackpack', $context);
 }
 
-echo json_encode($assertions->toArray());
+echo json_encode($assertions->toarray());

@@ -43,7 +43,7 @@ require_once(__DIR__ . '/blacklist.php');
  * @copyright  2013-2020, Open Badge Factory Oy
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class obfassertioncollection implements Countable, IteratorAggregate {
+class obf_assertion_collection implements Countable, IteratorAggregate {
 
     /**
      * @var obf_assertion[] The assertions in this collection.
@@ -80,11 +80,11 @@ class obfassertioncollection implements Countable, IteratorAggregate {
      *
      * @return array The array.
      */
-    public function toArray() {
+    public function toarray() {
         $ret = array();
 
         foreach ($this->assertions as $assertion) {
-            $ret[] = $assertion->toArray();
+            $ret[] = $assertion->toarray();
         }
 
         return $ret;
@@ -93,9 +93,9 @@ class obfassertioncollection implements Countable, IteratorAggregate {
     /**
      * Merges two collections.
      *
-     * @param obfassertioncollection $collection The other collection.
+     * @param obf_assertion_collection $collection The other collection.
      */
-    public function add_collection(obfassertioncollection $collection) {
+    public function add_collection(obf_assertion_collection $collection) {
         for ($i = 0; $i < count($collection); $i++) {
             $assertion = $collection->get_assertion($i);
 
@@ -177,7 +177,7 @@ class obfassertioncollection implements Countable, IteratorAggregate {
      * Remove badges from collection, that match those defined in users blacklist.
      *
      * @param obf_blacklist $blacklist Blacklist object used for filtering.
-     * @return obfassertioncollection $this
+     * @return obf_assertion_collection $this
      */
     public function apply_blacklist(obf_blacklist $blacklist) {
         $badgeids = $blacklist->get_blacklist();
@@ -222,7 +222,7 @@ class obfassertioncollection implements Countable, IteratorAggregate {
      *
      * @return ArrayIterator
      */
-    public function getIterator(): Traversable {
+    public function getiterator(): Traversable {
         return new ArrayIterator($this->assertions);
     }
 }

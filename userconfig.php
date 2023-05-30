@@ -89,13 +89,13 @@ switch ($action) {
         } else if (($data = $form->get_data())) { // User configuration was saved.
             $obfuserpreferences->save_preferences($data);
             $redirecturl = new moodle_url('/local/obf/userconfig.php', array('action' => 'edit'));
-            // If were saving backpack data, we can safely assume that the backpack exists, because it
+            // If were saving backpack data, we can safely assume that the backpack exists, because it.
             // had to be created before (via verifyemail.php).
             foreach ($backpacks as $backpack) {
                 if ($backpack->exists()) {
                     $propertyname = $backpack->get_providershortname() . 'backpackgroups';
                     if (isset($data->{$propertyname})) {
-                        // advcheckbox returns 0 values for unchecked, so lets use a filter
+                        // Advcheckbox returns 0 values for unchecked, so lets use a filter.
                         $groups = array_keys(array_filter($data->{$propertyname}));
                         $backpack->set_groups($groups);
                     }

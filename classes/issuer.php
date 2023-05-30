@@ -122,7 +122,7 @@ class obf_issuer {
         if (!is_null(self::$defaultissuer)) {
             return self::$defaultissuer;
         }
-        self::$defaultissuer = obf_issuer::get_instance_from_arr($client->get_issuer());
+        self::$defaultissuer = self::get_instance_from_arr($client->get_issuer());
         return self::$defaultissuer;
     }
 
@@ -154,7 +154,7 @@ class obf_issuer {
      *
      * @return array This issuer's properties as an array.
      */
-    public function toArray() {
+    public function toarray() {
         return array(
             'id' => $this->get_id(),
             'description' => $this->get_description(),

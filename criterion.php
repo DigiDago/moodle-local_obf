@@ -110,12 +110,10 @@ switch ($action) {
                 }
                 $completedbys = array();
                 foreach ($courseids as $courseid) {
-                    if (empty($courseid)) {
-                        // Do nothing
-                    } else if ($courseid == -1) {
+                    if ($courseid == -1) {
                         $item = obf_criterion_item::build_type($criteriatype);
                         $items[] = $item;
-                    } else {
+                    } else if (!empty($courseid)) {
                         // Check course id validity.
                         $course = $DB->get_record('course',
                             array('id' => $courseid, 'enablecompletion' => COMPLETION_ENABLED));
@@ -149,7 +147,7 @@ switch ($action) {
                 array('criterion' => $criterion,
                     'addcourse' => $addcourse));
             $data = $criterionform->get_data();
-            // We may now have more data
+            // We may now have more data.
             if (!empty($courseids) && is_array($courseids)) {
                 foreach ($courseids as $courseid) {
                     $completedby = property_exists($data, 'completedby_' . $courseid) ? $data->{'completedby_' . $courseid} : null;
@@ -402,7 +400,8 @@ switch ($action) {
         }
 
         break;
-    case 'list':
-        break;
+    default:
+        // Default case - throw an error.
+        throw new Exception("Unexpected value: $action");
 }
 echo $content;
