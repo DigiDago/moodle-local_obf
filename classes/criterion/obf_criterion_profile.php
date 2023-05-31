@@ -27,11 +27,12 @@ namespace classes\criterion;
 use context_system;
 use html_writer;
 use MoodleQuickForm;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once(__DIR__ . '/item_base.php');
+require_once(__DIR__ . '/obf_criterion_item.php');
 require_once($CFG->dirroot . '/user/lib.php');
 
 /**
@@ -177,7 +178,7 @@ class obf_criterion_profile extends obf_criterion_course {
      *
      * @return array html encoded activity descriptions.
      */
-    public function get_text_array() {
+    public function get_text_array(): array {
         $texts = array();
         $fields = $this->get_profile_fields();
         if (count($fields) == 0) {

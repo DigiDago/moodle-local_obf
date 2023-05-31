@@ -23,6 +23,8 @@
  */
 
 namespace classes;
+use stdClass;
+
 /**
  * Badge issuer -class.
  *

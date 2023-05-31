@@ -30,13 +30,14 @@ use context_course;
 use context_system;
 use dml_exception;
 use moodle_url;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/issuer.php');
 require_once(__DIR__ . '/client.php');
 require_once(__DIR__ . '/email.php');
-require_once(__DIR__ . '/criterion/criterion.php');
+require_once(__DIR__ . '/criterion/obf_criterion.php');
 require_once(__DIR__ . '/obf_assertion.php');
 require_once(__DIR__ . '/obf_assertion_collection.php');
 

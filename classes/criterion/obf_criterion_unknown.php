@@ -24,13 +24,15 @@
 
 namespace classes\criterion;
 
+use Exception;
 use html_writer;
 use moodle_url;
 use MoodleQuickForm;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__ . '/course.php');
+require_once(__DIR__ . '/obf_criterion_course.php');
 
 /**
  * Unknown criterion.
@@ -47,7 +49,7 @@ class obf_criterion_unknown extends obf_criterion_item {
      *
      * @param int $id The id of the activity criterion
      * @param int $method
-     * @return obf_criterion_activity
+     * @return obf_criterion_unknown
      */
     public static function get_instance($id, $method = null) {
         global $DB;

@@ -30,12 +30,13 @@ use context_course;
 use html_writer;
 use moodle_database;
 use MoodleQuickForm;
+use stdClass;
 use type;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__ . '/item_base.php');
-require_once(__DIR__ . '/criterion.php');
+require_once(__DIR__ . '/obf_criterion_item.php');
+require_once(__DIR__ . '/obf_criterion.php');
 require_once(__DIR__ . '/../badge.php');
 
 /**
@@ -111,7 +112,7 @@ class obf_criterion_course extends obf_criterion_item {
     /**
      * Initializes this object with values from $record
      *
-     * @param \stdClass $record The record from Moodle's database
+     * @param stdClass $record The record from Moodle's database
      * @return \obf_criterion_course
      */
     public function populate_from_record(\stdClass $record) {

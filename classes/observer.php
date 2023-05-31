@@ -128,7 +128,7 @@ class local_obf_observer {
 
         global $DB;
 
-        self::requires(array('/classes/event.php', '/classes/criterion/item_base.php'));
+        self::requires(array('/classes/event.php', '/classes/criterion/obf_criterion_item.php'));
 
         $user = $DB->get_record('user', array('id' => $eventdata->userid));
 
@@ -220,7 +220,7 @@ class local_obf_observer {
      */
     public static function profile_criteria_review(\core\event\user_updated $event) {
         global $DB, $CFG;
-        self::requires(array('/classes/event.php', '/classes/criterion/item_base.php'));
+        self::requires(array('/classes/event.php', '/classes/criterion/obf_criterion_item.php'));
 
         $userid = $event->objectid;
 

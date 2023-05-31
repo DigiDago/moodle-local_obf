@@ -451,13 +451,6 @@ class obf_client {
                     $this->error) . $appendtoerror, $this->httpcode);
         }
 
-        if ($response !== false) {
-            if (!is_null($preformatter)) {
-                $response = $preformatter($response);
-            }
-            $response = json_decode($response, true);
-        }
-
         return $response;
     }
 

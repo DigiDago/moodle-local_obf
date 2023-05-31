@@ -33,14 +33,15 @@ use classes\obf_issue_event;
 use completion_completion;
 use completion_info;
 use moodle_database;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 
 require_once(__DIR__ . '/../badge.php');
-require_once(__DIR__ . '/item_base.php');
-require_once(__DIR__ . '/course.php');
+require_once(__DIR__ . '/obf_criterion_item.php');
+require_once(__DIR__ . '/obf_criterion_course.php');
 
 require_once($CFG->dirroot . '/grade/querylib.php');
 require_once($CFG->libdir . '/gradelib.php');

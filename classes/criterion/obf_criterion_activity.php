@@ -28,12 +28,13 @@ use completion_info;
 use html_writer;
 use MoodleQuickForm;
 use Set;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__ . '/item_base.php');
-require_once(__DIR__ . '/criterion.php');
-require_once(__DIR__ . '/course.php');
+require_once(__DIR__ . '/obf_criterion_item.php');
+require_once(__DIR__ . '/obf_criterion.php');
+require_once(__DIR__ . '/obf_criterion_course.php');
 require_once(__DIR__ . '/../badge.php');
 
 /**
@@ -77,7 +78,7 @@ class obf_criterion_activity extends obf_criterion_course {
     /**
      * Initializes this object with values from $record
      *
-     * @param \stdClass $record The record from Moodle's database
+     * @param stdClass $record The record from Moodle's database
      * @return \obf_criterion_activity
      */
     public function populate_from_record(\stdClass $record) {
@@ -211,7 +212,7 @@ class obf_criterion_activity extends obf_criterion_course {
      *
      * @return array html encoded activity descriptions.
      */
-    public function get_text_array() {
+    public function get_text_array(): array {
         $params = $this->get_params();
         $modids = self::get_module_instanceids_from_params($params);
         $texts = array();

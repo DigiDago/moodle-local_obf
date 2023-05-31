@@ -35,6 +35,7 @@ use moodle_database;
 use Mozilla;
 use Open;
 use Provider;
+use stdClass;
 use Transport;
 use type;
 use Userid;

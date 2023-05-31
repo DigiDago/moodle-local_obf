@@ -36,7 +36,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/tablelib.php');
 require_once(__DIR__ . '/form/issuance.php');
-require_once(__DIR__ . '/classes/criterion/criterion.php');
+require_once(__DIR__ . '/classes/criterion/obf_criterion.php');
 require_once(__DIR__ . '/form/emailtemplate.php');
 require_once(__DIR__ . '/form/coursecriterion.php');
 require_once(__DIR__ . '/classes/backpack.php');

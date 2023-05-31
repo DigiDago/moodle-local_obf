@@ -26,6 +26,7 @@ namespace classes;
 
 use Assertion;
 use cache;
+use stdClass;
 use type;
 
 defined('MOODLE_INTERNAL') || die();

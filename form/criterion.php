@@ -26,7 +26,6 @@ use classes\criterion\obf_criterion;
 use classes\criterion\obf_criterion_course;
 use classes\criterion\obf_criterion_item;
 use classes\criterion\obf_criterion_unknown;
-use core\context\coursecat;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -59,7 +58,7 @@ class obf_criterion_form extends local_obf_form_base implements renderable {
      */
     protected function definition() {
         global $DB, $OUTPUT;
-        require_once(__DIR__ . '/../classes/criterion/unknown.php');
+        require_once(__DIR__ . '/../classes/criterion/obf_criterion_unknown.php');
 
         $mform = $this->_form;
         $this->criterion = $this->_customdata['criterion'];

@@ -25,18 +25,20 @@
 namespace classes\criterion;
 
 use Certificate;
+use Exception;
 use Expires;
 use html_writer;
 use MoodleQuickForm;
 use program;
 use Programs;
 use Set;
+use stdClass;
 use strign;
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once(__DIR__ . '/item_base.php');
+require_once(__DIR__ . '/obf_criterion_item.php');
 require_once($CFG->dirroot . '/user/lib.php');
 
 /**
@@ -93,7 +95,7 @@ class obf_criterion_totaraprogram extends obf_criterion_course {
     /**
      * Initializes this object with values from $record
      *
-     * @param \stdClass $record The record from Moodle's database
+     * @param stdClass $record The record from Moodle's database
      * @return \classes\criterion\obf_criterion_activity
      */
     public function populate_from_record(\stdClass $record) {
@@ -428,7 +430,7 @@ class obf_criterion_totaraprogram extends obf_criterion_course {
      *
      * @return array html encoded activity descriptions.
      */
-    public function get_text_array() {
+    public function get_text_array(): array {
         $texts = array();
         $programids = $this->get_programids();
         if (count($programids) == 0) {

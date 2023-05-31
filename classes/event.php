@@ -24,6 +24,7 @@
 
 namespace classes;
 use moodle_database;
+use stdClass;
 
 /**
  * Issue events -class.

@@ -24,14 +24,12 @@
 
 namespace classes\criterion;
 
-use Criteria;
-use Expires;
-use obf_criterion_base;
-use Set;
+use Exception;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__ . '/criterion.php');
+require_once(__DIR__ . '/obf_criterion.php');
 
 /**
  * Abstract criterion item base.
@@ -42,11 +40,11 @@ require_once(__DIR__ . '/criterion.php');
 abstract class obf_criterion_item {
 
     /**
-     * @var Criteria that does nothing, but help set up new criteria.
+     * Criteria that does nothing, but help set up new criteria.
      */
     const CRITERIA_TYPE_UNKNOWN = 0;
     /**
-     * @var Criteria that does nothing, but help set up new criteria.
+     * Criteria that does nothing, but help set up new criteria.
      */
     const CRITERIA_TYPE_ANY = 0; // For internal filtering purposes.
     /**
@@ -142,20 +140,21 @@ abstract class obf_criterion_item {
      * Build criteria object based on params.
      *
      * @param array $params
-     * @return obf_criterion_base|mixed Returns obf_criterion_(course|activity|unknown)
+     * @return obf_criterion_item|mixed Returns obf_criterion_(course|activity|unknown)
      *         based on what criteriatype was passed in params.
      * @see self::$obfbadgecriteriatypeclasses
      */
     public static function build($params) {
-        $typeid = isset($params['criteriatype']) ? $params['criteriatype'] :
-            (isset($params['criteria_type']) ? $params['criteria_type'] : null);
-        if (!isset($typeid) || is_null($typeid) || !isset(self::$obfbadgecriteriatypeclasses[$typeid])) {
+        $typeid = $params['criteriatype'] ?? ($params['criteria_type'] ?? null);
+        if (!isset($typeid) || !isset(self::$obfbadgecriteriatypeclasses[$typeid])) {
             throw new Exception("Error Building criterion." . $params['criteriatype']);
         }
         $type = self::$obfbadgecriteriatypeclasses[$typeid];
         $class = 'obf_criterion_' . $type;
-        require_once(__DIR__ . '/' . $type . '.php');
-        return new $class($params);
+        require_once(__DIR__ . '/' . $class . '.php');
+
+        $fullname = "classes\criterion\\" . $class;
+        return new $fullname($params);
     }
 
     /**
@@ -194,8 +193,10 @@ abstract class obf_criterion_item {
         }
         $type = self::get_criterion_type_text($method);
         $class = 'obf_criterion_' . $type;
-        require_once(__DIR__ . '/' . $type . '.php');
-        return $class::get_instance($instanceid);
+        require_once(__DIR__ . '/' . $class . '.php');
+
+        $fullname = "classes\criterion\\" . $class;
+        return $fullname::get_instance($instanceid);
     }
 
     /**
@@ -261,7 +262,7 @@ abstract class obf_criterion_item {
      * Get expires date that overrides expiration date set on badge settings.
      *
      * @param stdClass $user
-     * @return Expires by time in unix-timestamp format
+     * @return null Expired by time in unix-timestamp format
      */
     public function get_issue_expires_override($user = null) {
         return null;
@@ -431,9 +432,9 @@ abstract class obf_criterion_item {
     /**
      * Get text/name array.
      *
-     * @return string[]
+     * @return array[]
      */
-    public function get_text_array() {
+    public function get_text_array(): array {
         return array($this->get_text());
     }
 

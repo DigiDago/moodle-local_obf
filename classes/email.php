@@ -25,6 +25,7 @@
 namespace classes;
 
 use moodle_database;
+use stdClass;
 
 /**
  * Email templates -class.

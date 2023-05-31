@@ -24,6 +24,7 @@
 
 namespace classes;
 use Blacklist;
+use stdClass;
 use User;
 
 /**

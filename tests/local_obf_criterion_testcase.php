@@ -31,9 +31,9 @@ use classes\obf_issue_event;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__ . '/../classes/criterion/criterion.php');
+require_once(__DIR__ . '/../classes/criterion/obf_criterion.php');
 require_once(__DIR__ . '/../classes/badge.php');
-require_once(__DIR__ . '/../classes/criterion/activity.php');
+require_once(__DIR__ . '/../classes/criterion/obf_criterion_activity.php');
 
 /**
  * Criterion testcase.

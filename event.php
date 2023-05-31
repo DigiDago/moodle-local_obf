@@ -31,7 +31,7 @@ use classes\obf_assertion_collection;
 require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/classes/obf_assertion.php');
 require_once(__DIR__ . '/classes/obf_assertion_collection.php');
-require_once(__DIR__ . '/classes/criterion/criterion.php');
+require_once(__DIR__ . '/classes/criterion/obf_criterion.php');
 require_once(__DIR__ . '/classes/event.php');
 require_once(__DIR__ . '/form/revoke.php');
 

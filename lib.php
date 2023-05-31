@@ -44,8 +44,8 @@ define('OBF_API_CONSUMER_ID', 'Moodle');
 define('OBF_API_CODE_CERT_ERROR', 495);
 define('OBF_API_CODE_NO_CERT', 496);
 
-require_once(__DIR__ . '/classes/criterion/criterion.php');
-require_once(__DIR__ . '/classes/criterion/course.php');
+require_once(__DIR__ . '/classes/criterion/obf_criterion.php');
+require_once(__DIR__ . '/classes/criterion/obf_criterion_course.php');
 
 /**
  * Adds the OBF-links to Moodle's navigation, Moodle 2.2 -style.

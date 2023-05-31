@@ -29,7 +29,7 @@ require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once(__DIR__ . '/form/criteriondeletion.php');
 require_once(__DIR__ . '/classes/client.php');
-require_once(__DIR__ . '/classes/criterion/criterion.php');
+require_once(__DIR__ . '/classes/criterion/obf_criterion.php');
 
 $context = context_system::instance();
 $url = new moodle_url('/local/obf/deleted.php');

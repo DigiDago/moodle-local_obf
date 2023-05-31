@@ -28,7 +28,7 @@ use classes\obf_badge;
 use classes\obf_client;
 
 require_once(__DIR__ . '/../../config.php');
-require_once(__DIR__ . '/classes/criterion/course.php');
+require_once(__DIR__ . '/classes/criterion/obf_criterion_course.php');
 require_once(__DIR__ . "/classes/badge.php");
 
 $clientid = required_param('clientid', PARAM_ALPHANUM);
