@@ -26,6 +26,7 @@ namespace classes;
 
 use curl;
 use dml_write_exception;
+use Exception;
 use url;
 
 defined('MOODLE_INTERNAL') || die();

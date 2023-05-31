@@ -97,6 +97,7 @@ switch ($action) {
             $content .= $PAGE->get_renderer('local_obf')->render_client_selector($url, $clientid);
             $content .= $PAGE->get_renderer('local_obf')
                 ->print_issuing_history($client, $context, $historysize, $currpage, $history);
+
         } catch (Exception $e) {
             $content .= $OUTPUT->notification($e->getMessage());
         }
@@ -122,10 +123,6 @@ switch ($action) {
             $content .= $OUTPUT->notification($e->getMessage(), 'notifyproblem');
         }
 
-        break;
-
-    case 'historycsv':
-        $PAGE->get_renderer('local_obf')->create_csv($badge);
         break;
 
     // Display badge info.

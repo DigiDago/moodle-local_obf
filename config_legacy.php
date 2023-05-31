@@ -162,7 +162,7 @@ switch ($action) {
                         $email = new obf_email();
                         $email->set_body($badge->message);
                         $email->set_subject($badge->messagesubject);
-                        
+
                         $storage = get_file_storage();
                         $imagefile = $storage->get_file(
                             $context->id,
