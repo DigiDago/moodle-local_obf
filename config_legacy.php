@@ -36,7 +36,7 @@ require_once(__DIR__ . '/classes/client.php');
 $context = context_system::instance();
 $msg = optional_param('msg', '', PARAM_TEXT);
 $action = optional_param('action', 'authenticate', PARAM_TEXT);
-$url = new moodle_url('/local/obf/config.php', $action != 'authenticate' ? array('action' => $action) : array());
+$url = new moodle_url('/local/obf/config_legacy.php', $action != 'authenticate' ? array('action' => $action) : array());
 $client = obf_client::get_instance();
 $badgesupport = file_exists($CFG->libdir . '/badgeslib.php');
 
@@ -162,6 +162,15 @@ switch ($action) {
                         $email = new obf_email();
                         $email->set_body($badge->message);
                         $email->set_subject($badge->messagesubject);
+                        
+                        $storage = get_file_storage();
+                        $imagefile = $storage->get_file(
+                            $context->id,
+                            'badges',
+                            'badgeimage',
+                            $badge->id,
+                            '/',
+                            'f1.png');
 
                         $obfbadge = obf_badge::get_instance_from_array(array(
                             'name' => $badge->name,
@@ -172,12 +181,7 @@ switch ($action) {
                             'tags' => array(),
                             'ctime' => null,
                             'description' => $badge->description,
-                            'image' => base64_encode(file_get_contents(
-                                moodle_url::make_pluginfile_url($badge->get_context()->id,
-                                    'badges',
-                                    'badgeimage',
-                                    $badge->id, '/',
-                                    'f1', false))),
+                            'image' => base64_encode($imagefile->get_content()),
                             'draft' => $data->makedrafts
                         ));
                         $obfbadge->set_email($email);

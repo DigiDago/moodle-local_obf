@@ -59,7 +59,7 @@ if ($hasobfconfig) {
 
     // Badge export settings.
     $export = new admin_externalpage('obfexportbadges', get_string('exportsettings', 'local_obf'),
-        new moodle_url('/local/obf/config.php', array('action' => 'exportbadges')), 'local/obf:configure');
+        new moodle_url('/local/obf/config_legacy.php', array('action' => 'exportbadges')), 'local/obf:configure');
     $ADMIN->add('obf', $export);
 
     $ADMIN->add('obf', $badgelist);
