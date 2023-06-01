@@ -90,10 +90,12 @@ switch ($action) {
         require_capability('local/obf:viewhistory', $context);
         $client = obf_client::get_instance();
 
+        $search = optional_param('search', null, PARAM_TEXT);
         $searchparams = array(
             'api_consumer_id' => OBF_API_CONSUMER_ID,
             'log_entry' => '"course_id":"' . $courseid . '"',
-            'count_only' => 1
+            'count_only' => 1,
+            'query' => $search
         );
         $res = $client->get_assertions(null, null, $searchparams);
 

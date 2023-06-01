@@ -35,7 +35,11 @@ if (empty($courseid)) {
 
 // Retrieve history data from the form.
 $client = obf_client::get_instance();
-$history = obf_assertion::get_assertions($client, null, null, -1, false);
+
+$search = optional_param('search', null, PARAM_TEXT);
+$searchparams['query'] = $search;
+
+$history = obf_assertion::get_assertions($client, null, null, -1, false, $searchparams);
 
 // CSV output filename.
 $filename = 'badge_history.csv';

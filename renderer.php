@@ -1099,41 +1099,42 @@ class local_obf_renderer extends plugin_renderer_base {
         } else {
             // Export to CSV.
             $courseid = optional_param('courseid', null, PARAM_INT);
+            $search = optional_param('search', '', PARAM_TEXT);
 
             $html .= "<form action='export.php?courseid=$courseid' method='post'>";
+            $html .= "<input type='hidden' name='search' value='$search' placeholder='Search'>";
             $html .= '<button type="submit" class="btn btn-secondary">Export to CSV</button>';
             $html .= '</form>';
 
-            // Paging settings.
-            $perpage = 10;
-
-            if ($this->page->pagetype == 'local-obf-courseuserbadges') {
-                $path = '/local/obf/courseuserbadges.php';
-            } else {
-                $path = '/local/obf/badge.php';
-            }
-
+            // Search form.
+            $path = '/local/obf/badge.php';
             $urlparams = array('action' => 'history');
 
             $urlparams['clientid'] = $client->client_id();
-
             if ($context instanceof context_course) {
                 $urlparams['courseid'] = $context->instanceid;
+                $path = '/local/obf/courseuserbadges.php';
             }
 
+            // Construct the search URL.
+            $searchurl = new moodle_url($path, $urlparams);
+
+            $html .= "<form action='$searchurl' method='post'>";
+            $html .= "<input type='text' name='search' value='$search' placeholder='Search'>";
+            $html .= "<button type='submit' class='btn btn-primary'>Search</button>";
+            $html .= '</form>';
+
+            // Paging settings.
+
+            $perpage = 10;
             $url = new moodle_url($path, $urlparams);
             $pager = new paging_bar($historysize, $currentpage, $perpage, $url, 'page');
             $htmlpager = $this->render($pager);
 
-            $startindex = $currentpage * $perpage;
-            $endindex = $startindex + $perpage > $historysize ? $historysize : $startindex + $perpage;
-
             // Heading row.
             $headingrow = array();
-
             $headingrow[] = new local_obf_table_header('badgename');
             $historytable->headspan = array(2, 1, 1, 1, 1);
-
             $headingrow[] = new local_obf_table_header('recipients');
             $headingrow[] = new local_obf_table_header('issuedon');
             $headingrow[] = new local_obf_table_header('expiresby');
@@ -1144,6 +1145,8 @@ class local_obf_renderer extends plugin_renderer_base {
             // Add history rows.
             foreach ($history as $assertion) {
                 $users = $history->get_assertion_users($assertion);
+
+                // Render the row for each assertion.
                 $historytable->data[] = $this->render_historytable_row($assertion, false, $path, $users);
             }
 
@@ -1213,6 +1216,7 @@ class local_obf_renderer extends plugin_renderer_base {
         } else {
             $recipienthtml .= $this->render_userlist($users);
         }
+
 
         $row->cells[] = $recipienthtml;
         $row->cells[] = userdate($assertion->get_issuedon(),
