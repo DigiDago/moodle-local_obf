@@ -45,7 +45,13 @@ $history = obf_assertion::get_assertions($client, null, null, -1, false, $search
 $filename = 'badge_history.csv';
 
 // CSV headers.
-$headers = array('Badge Name', 'Recipients', 'Issued On', 'Expires By', 'Issued From');
+$headers = array(
+    get_string('exportbadgename','local_obf'),
+    get_string('exportrecipients','local_obf'),
+    get_string('exportissuedon','local_obf'),
+    get_string('exportexpiresby','local_obf'),
+    get_string('exportissuedfrom','local_obf')
+);
 
 // Initialize CSV file.
 $csvfile = new \csv_export_writer();
@@ -71,7 +77,11 @@ foreach ($history as $assertion) {
 
     $recipients = array();
     foreach ($users as $user) {
-        $recipients[] = $user->firstname . ' ' . $user->lastname;
+        if (!isset($user->firstname) || !isset($user->lastname)) {
+            $recipients[] = $user;
+        } else {
+            $recipients[] = $user->firstname . ' ' . $user->lastname;
+        }
     }
 
     if ((isset($courseid) && $courseid == $logs) || empty($courseid)) {
