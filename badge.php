@@ -93,7 +93,7 @@ switch ($action) {
             $searchparams['limit'] = 10;
             $searchparams['offset'] = $currpage * 10;
             $searchparams['order_by'] = 'asc';
-            
+
             $history = obf_assertion::get_assertions($client, null, null, -1, false, $searchparams);
 
             $content .= $PAGE->get_renderer('local_obf')->render_client_selector($url, $clientid);

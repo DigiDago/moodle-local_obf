@@ -479,7 +479,24 @@ class obf_client {
      * @return array The badges data.
      */
     public function get_badges(array $categories = array(), $query = '') {
+        global $DB;
+
         $params = array('draft' => 0, 'external' => 1);
+
+        // Checks rules.
+        // Add categories to request if special rules are set.
+        $courseid = optional_param('courseid', null, PARAM_INT);
+        if ($courseid) {
+            $course = get_course($courseid);
+
+            $rules = $DB->get_records('local_obf_rulescateg',
+                ['oauth2_id' => obf_client::get_instance()->oauth2->id, 'coursecategorieid' => $course->category]);
+            foreach ($rules as $rule) {
+                if (!in_array($rule->badgecategoriename, $categories)) {
+                    $categories[] = $rule->badgecategoriename;
+                }
+            }
+        }
 
         if (count($categories) > 0) {
             $params['category'] = implode('|', $categories);

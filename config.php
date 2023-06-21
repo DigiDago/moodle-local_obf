@@ -182,6 +182,79 @@ switch ($action) {
                 $DB->execute('INSERT INTO {local_obf_oauth2_role} (oauth2_id, role_id) VALUES (?,?)', array($clientid, $r));
             }
 
+            // Save rules.
+            $oauth2Id = optional_param('id', null, PARAM_INT);
+            $rules = $DB->get_records_sql('SELECT ruleid, id FROM {local_obf_rulescateg} WHERE oauth2_id = ? GROUP BY ruleid',
+                [$oauth2Id]);
+
+            // Handle if $rules is empty, create a new set.
+            if (empty($rules)) {
+                $coursecategorieids = $data->coursecategorieid;
+                $badgecategorienames = $data->badgecategoriename;
+
+                if (!empty($coursecategorieids) && !empty($badgecategorienames)) {
+                    // Loop through each selected course category and badge category
+                    foreach ($coursecategorieids as $coursecategorieid) {
+                        foreach ($badgecategorienames as $badgecategoriename) {
+                            // Create a new rule
+                            $newRule = new stdClass();
+                            $newRule->id = null;
+                            $newRule->ruleid = 1;
+                            $newRule->oauth2_id = $oauth2Id;
+                            $newRule->coursecategorieid = $coursecategorieid;
+                            $newRule->badgecategoriename = $badgecategoriename;
+
+                            // Insert the new rule.
+                            $DB->insert_record('local_obf_rulescateg', $newRule);
+                        }
+                    }
+                }
+            } else {
+                foreach ($rules as $key => $rule) {
+                    $coursecategorieids = $data->{'coursecategorieid_' . $rule->ruleid};
+                    $badgecategorienames = $data->{'badgecategoriename_' . $rule->ruleid};
+
+                    // Delete the existing rule
+                    $DB->delete_records('local_obf_rulescateg', ['ruleid' => $rule->ruleid]);
+
+                    if (!empty($coursecategorieids) && !empty($badgecategorienames)) {
+                        // Loop through each selected course category and badge category
+                        foreach ($coursecategorieids as $coursecategorieid) {
+                            foreach ($badgecategorienames as $badgecategoriename) {
+                                // Create a new rule
+                                $newRule = new stdClass();
+                                $newRule->ruleid = $rule->ruleid;
+                                $newRule->coursecategorieid = $coursecategorieid;
+                                $newRule->badgecategoriename = $badgecategoriename;
+                                $newRule->oauth2_id = $oauth2Id;
+
+                                $data->ruleid = $rule->ruleid;
+
+                                // Insert the new rule.
+                                $newRule = $DB->insert_record('local_obf_rulescateg', $newRule);
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            // New rule.
+            if (isset($data->add_rules_value) && $data->add_rules_value == 'true') {
+                // Create a new rule in the local_obf_rulescateg table.
+                $newRule = new stdClass();
+                $newRule->ruleid = $data->ruleid + 1;
+                $newRule->coursecategorieid = null;
+                $newRule->badgecategoriename = null;
+                $newRule->oauth2_id = $oauth2Id;
+
+                // Insert the new rule into the database.
+                $DB->insert_record('local_obf_rulescateg', $newRule);
+
+                // Reload the page and focus on the newly created rule.
+                redirect(new moodle_url('/local/obf/config.php?action=edit&id=' . $oauth2Id));
+            }
+
             redirect($listclients, get_string('clientsaved', 'local_obf'));
 
         } else {
@@ -192,6 +265,7 @@ switch ($action) {
     case 'delete':
         if (confirm_sesskey()) {
             $DB->delete_records('local_obf_oauth2', array('id' => $clientid));
+            $DB->delete_records('local_obf_rulescateg', array('oauth2_id' => $clientid));
         }
         redirect($listclients, get_string('clientdeleted', 'local_obf'));
         break;

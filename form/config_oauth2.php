@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use classes\obf_badge;
 use classes\obf_client;
 
 defined('MOODLE_INTERNAL') || die();
@@ -40,6 +41,7 @@ class obf_config_oauth2_form extends moodleform {
     private $tokenexpires = 0;
     private $clientname = '';
     private $roles = [];
+
     public function __construct($actionurl, $isadding, $roles) {
         $this->isadding = $isadding;
         $this->roles = $roles;
@@ -47,12 +49,15 @@ class obf_config_oauth2_form extends moodleform {
     }
 
     public function definition() {
-        $mform =& $this->_form;
+        global $DB, $PAGE;
 
-        // Then show the fields about where this block appears.
+        $mform = $this->_form;
+
+        // Add header for the client block
         $mform->addElement('header', 'obfeditclientheader', get_string('client', 'local_obf'));
 
         if ($this->isadding) {
+            // Add fields for adding a new client
             $mform->addElement('text', 'obf_url', get_string('obfurl', 'local_obf'), array('size' => 60));
             $mform->setType('obf_url', PARAM_URL);
             $mform->addRule('obf_url', null, 'required');
@@ -68,7 +73,7 @@ class obf_config_oauth2_form extends moodleform {
             $mform->addRule('client_secret', null, 'required');
             $mform->addHelpButton('client_secret', 'clientsecret', 'local_obf');
         } else {
-
+            // Add static fields for editing an existing client
             $mform->addElement('text', 'client_name', get_string('clientname', 'local_obf'), array('size' => 60));
             $mform->setType('client_name', PARAM_NOTAGS);
             $mform->addRule('client_name', null, 'required');
@@ -80,6 +85,7 @@ class obf_config_oauth2_form extends moodleform {
 
         $canissue = $this->roles_available();
         if (!empty($canissue)) {
+            // Add header for issuer roles
             $mform->addElement('header', 'obfeditclientheader', get_string('issuerroles', 'local_obf'));
 
             $mform->addElement('static', 'role_help', '', get_string('issuerroles_help', 'local_obf'));
@@ -91,14 +97,116 @@ class obf_config_oauth2_form extends moodleform {
             }
         }
 
+        // Set options for autocomplete field.
+        $options = array(
+            'multiple' => true,
+            'noselectionstring' => get_string('allareas', 'search'),
+            'data-updatebutton-field' => 'autocomplete',
+        );
+
+        // Get course categories from the database.
+        $categories = $DB->get_records('course_categories', null, 'sortorder ASC', 'id, name');
+
+        // Create an array of categories for autocomplete.
+        $categoryoptions = array(
+            0 => 'All'
+        );
+        foreach ($categories as $category) {
+            $categoryoptions[$category->id] = $category->name;
+        }
+
+        // Generate an array of badge categories.
+        $client = obf_client::get_instance();
+        $badgecategories = array(
+            0 => 'All'
+        );
+        $clientcateg = $client->get_categories();
+        if ($clientcateg) {
+            foreach ($clientcateg as $category) {
+                $badgecategories[$category] = $category;
+            }
+        }
+
+        $rules = $DB->get_records_sql('SELECT ruleid FROM {local_obf_rulescateg} WHERE oauth2_id = ? GROUP BY ruleid',
+            ['oauth2_id' => optional_param('id', null, PARAM_INT)]);
+
+        // Vérifier si $rules est null ou vide.
+        $ruleid = 0;
+        if (empty($rules)) {
+            // Aucune règle n'est associée, créer un seul ensemble de blocs
+            // Add header for Moodle categories
+            $mform->addElement('header', 'chooseurmoodlecategories', get_string('Rules', 'local_plugin'));
+            $mform->setExpanded('chooseurmoodlecategories');
+
+            // Add autocomplete field for Moodle course categories
+            $mform->addElement('autocomplete', 'coursecategorieid', get_string('choosecategories', 'local_plugin'),
+                $categoryoptions, $options);
+            $mform->setType('coursecategorieid', PARAM_INT);
+
+            // Add autocomplete field for badge categories
+            $mform->addElement('autocomplete', 'badgecategoriename', get_string('chooseurbadgecategories', 'local_plugin'),
+                $badgecategories, $options);
+            $mform->setType('badgecategoriename', PARAM_TEXT);
+        } else {
+            $rulecount = 1;
+            foreach ($rules as $rule) {
+                // Créer un nouveau bloc 'chooseurmoodlecategories' pour chaque règle.
+                $ruledatas = $DB->get_records('local_obf_rulescateg', ['ruleid' => $rule->ruleid, 'oauth2_id' => optional_param('id', null, PARAM_INT)]);
+
+                $badgedefaultcateg = [];
+                $coursedefaultcateg = [];
+
+                if (isset($ruledatas)) {
+                    foreach($ruledatas as $ruledata) {
+                        if ($ruledata->badgecategoriename != null) {
+                            $badgedefaultcateg[] = $ruledata->badgecategoriename;
+                        }
+                        if ($ruledata->coursecategorieid != null) {
+                            $coursedefaultcateg[] = $ruledata->coursecategorieid;
+                        }
+                    }
+                }
+
+                $headerName = 'chooseurmoodlecategories_'. $rule->ruleid;
+                $mform->addElement('header', $headerName, get_string('rules', 'local_obf') . " $rulecount");
+                $mform->setExpanded($headerName);
+
+                // Add autocomplete field for Moodle course categories.
+                $mform->addElement('autocomplete', 'coursecategorieid_' . $rule->ruleid,
+                    get_string('choosecategories', 'local_obf'), $categoryoptions, $options);
+                $mform->setType('coursecategorieid_' . $rule->ruleid, PARAM_INT);
+                $mform->setDefaults(['coursecategorieid_' . $rule->ruleid => $coursedefaultcateg]);
+
+                // Add autocomplete field for badge categories.
+                $mform->addElement('autocomplete', 'badgecategoriename_' . $rule->ruleid,
+                    get_string('chooseurbadgecategories', 'local_obf'), $badgecategories, $options);
+                $mform->setType('badgecategoriename_' . $rule->ruleid, PARAM_TEXT);
+                $mform->setDefaults(['badgecategoriename_' . $rule->ruleid => $badgedefaultcateg]);
+
+                // Count number of rules.
+                $ruleid = $rule->ruleid;
+                $rulecount++;
+            }
+        }
+
         $submitlabel = null; // Default.
         if ($this->isadding) {
             $submitlabel = get_string('addnewclient', 'local_obf');
         }
+
+        $mform->addElement('button', 'add_rules_button', get_string('addrules', 'local_obf'));
+        $mform->addElement('hidden', 'add_rules_value', false);
+        $mform->addElement('hidden', 'ruleid', $ruleid);
+        $mform->closeHeaderBefore('add_rules_button');
+
+        // Load the separate JavaScript file and call the event handler.
+        $PAGE->requires->js_call_amd('local_obf/obf_config_oauth2_form', 'init');
+
         $this->add_action_buttons(true, $submitlabel);
     }
 
     public function validation($data, $files) {
+
         $errors = parent::validation($data, $files);
 
         if ($this->isadding && empty($errors)) {
@@ -122,6 +230,7 @@ class obf_config_oauth2_form extends moodleform {
 
     public function get_data() {
         $data = parent::get_data();
+
         if ($data && $this->isadding) {
             $data->access_token = $this->access_token;
             $data->token_expires = $this->token_expires;

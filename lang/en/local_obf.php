@@ -65,7 +65,7 @@ $string['backpackconnected'] = 'Connected';
 $string['backpackdisconnected'] = 'Disconnected';
 $string['backpackemail'] = 'Email address';
 $string['backpackemailnotfound'] = 'Couldn\'t find a user by the email \'{$a->email}\' from {$a->provider}.';
-$string['backpackemail_help'] = 'Email address associated with your Mozilla OpenBadges Backpack account.';
+$string['backpackemail_help'] = 'Email address associated with your Open Badge Passport account';
 $string['backpackemailaddexternalobp'] =
     '<p>Couldn\'t find a user matching the email \'<strong>{$a}</strong>\' from Open Badge Passport.</p><p>To add your email, open <a href="https://openbadgepassport.com">https://openbadgepassport.com</a> in your browser and log in. </p><p>After logging in follow the <strong><i>My account &gt; Account settings &gt; E-mail addresses</i></strong> navigation path.</p><p>With the <i>E-mail addresses</i> -page open, add \'<strong>{$a}</strong>\' in the \'Add new e-mail\' -field and save.</p>';
 $string['backpackemailaddexternalbackpackprovider'] =
@@ -245,7 +245,7 @@ $string['localevents'] = 'Awarding history shows only badges issued from this sy
 $string['makeexporteddrafts'] = 'Exported badges are drafts by default';
 $string['messageprovider:revoked'] = 'Issued badge is revoked';
 $string['minimumgrade'] = 'Minimum grade';
-$string['nobackpackgroups'] = 'No public badge groups in your backpack. Create at least one public group to your backpack.';
+$string['nobackpackgroups'] = 'You don’t have public badges in your Open Badge Passport. Please share your badges as public if you want to display them here.';
 $string['nobadgehistory'] = 'This badge hasn\'t been issued yet.';
 $string['nobadges'] = 'No badges yet.';
 $string['nobadgesincourse'] = 'No related badges yet.';
@@ -355,3 +355,8 @@ $string['verifytokendescription'] = 'An email has been sent to the provided addr
 $string['warningcannoteditafterreview'] =
     'Note that if the badge is awarded when these rules are being reviewed, the rule(s) cannot be edited anymore. Once the badge has been automatically awarded to at least one person, editing of the rules is prohibited. So make sure the rules are set correctly before reviewing.';
 $string['coursereset'] = "Delete awarding rules when course is reset.";
+
+$string['rules'] = 'Rules';
+$string['addrules'] = 'Add a rule';
+$string['choosecategories'] = 'Choose your moodle categories';
+$string['chooseurbadgecategories'] = 'Choose your Open Badge categories';
