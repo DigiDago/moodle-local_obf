@@ -489,14 +489,26 @@ class obf_client {
         if ($courseid) {
             $course = get_course($courseid);
 
-            $rules = $DB->get_records('local_obf_rulescateg',
-                ['oauth2_id' => obf_client::get_instance()->oauth2->id, 'coursecategorieid' => $course->category]);
+            $rules = $DB->get_records('local_obf_rulescateg', ['oauth2_id' => obf_client::get_instance()->oauth2->id, 'coursecategorieid' => $course->category]);
+
+            $hasZero = false; // Variable to track if at least one occurrence of zero is found.
+
             foreach ($rules as $rule) {
+                if ($rule->badgecategoriename === '0') {
+                    $hasZero = true; // An occurrence of zero is found.
+                    break; // Exit the loop as soon as an occurrence is found.
+                }
+
                 if (!in_array($rule->badgecategoriename, $categories)) {
                     $categories[] = $rule->badgecategoriename;
                 }
             }
+
+            if ($hasZero) {
+                $categories = []; // Reset $categories to null if an occurrence of zero is found.
+            }
         }
+
 
         if (count($categories) > 0) {
             $params['category'] = implode('|', $categories);

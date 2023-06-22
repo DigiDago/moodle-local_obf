@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use classes\obf_client;
+
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once(__DIR__ . '/classes/client.php');
@@ -184,32 +186,59 @@ switch ($action) {
 
             // Save rules.
             $oauth2Id = optional_param('id', null, PARAM_INT);
-            $rules = $DB->get_records_sql('SELECT ruleid, id FROM {local_obf_rulescateg} WHERE oauth2_id = ? GROUP BY ruleid',
-                [$oauth2Id]);
+            if ($oauth2Id == 0) {
+                $oauth2Id = $clientid;
+            }
 
-            // Handle if $rules is empty, create a new set.
+            $rules = $DB->get_records_sql('SELECT ruleid, id FROM {local_obf_rulescateg} WHERE oauth2_id = ? GROUP BY ruleid',
+                ['oauth2_id' => $oauth2Id]);
+
+            /**
+             * This code handles the creation and insertion of new rules based on the provided data.
+             * If $rules is empty, it creates rules based on $data.
+             * If $rules is not empty, it updates the existing rules based on $data.
+             */
+
             if (empty($rules)) {
                 $coursecategorieids = $data->coursecategorieid;
                 $badgecategorienames = $data->badgecategoriename;
 
                 if (!empty($coursecategorieids) && !empty($badgecategorienames)) {
-                    // Loop through each selected course category and badge category
-                    foreach ($coursecategorieids as $coursecategorieid) {
-                        foreach ($badgecategorienames as $badgecategoriename) {
-                            // Create a new rule
-                            $newRule = new stdClass();
-                            $newRule->id = null;
-                            $newRule->ruleid = 1;
-                            $newRule->oauth2_id = $oauth2Id;
-                            $newRule->coursecategorieid = $coursecategorieid;
-                            $newRule->badgecategoriename = $badgecategoriename;
+                    // Check if any of the course category IDs is 0
+                    if (in_array(0, $coursecategorieids)) {
+                        // Perform the necessary actions here for the case where at least one course category ID is 0
 
-                            // Insert the new rule.
-                            $DB->insert_record('local_obf_rulescateg', $newRule);
+                        $categories = core_course_category::get_all();
+
+                        // Loop through each selected badge category
+                        foreach ($badgecategorienames as $badgecategoriename) {
+                            // Loop through each course category
+                            foreach ($categories as $category) {
+                                // Get the category ID
+                                $coursecategorieid = $category->id;
+
+                                // Create a new rule
+                                $newRule = createNewRule(1, $oauth2Id, $coursecategorieid, $badgecategoriename);
+
+                                // Insert the new rule.
+                                $DB->insert_record('local_obf_rulescateg', $newRule);
+                            }
+                        }
+                    } else {
+                        // Loop through each selected course category and badge category
+                        foreach ($coursecategorieids as $coursecategorieid) {
+                            foreach ($badgecategorienames as $badgecategoriename) {
+                                // Create a new rule
+                                $newRule = createNewRule(1, $oauth2Id, $coursecategorieid, $badgecategoriename);
+
+                                // Insert the new rule.
+                                $DB->insert_record('local_obf_rulescateg', $newRule);
+                            }
                         }
                     }
                 }
             } else {
+                // If rules exist, update the existing rules based on $data
                 foreach ($rules as $key => $rule) {
                     $coursecategorieids = $data->{'coursecategorieid_' . $rule->ruleid};
                     $badgecategorienames = $data->{'badgecategoriename_' . $rule->ruleid};
@@ -217,26 +246,38 @@ switch ($action) {
                     // Delete the existing rule
                     $DB->delete_records('local_obf_rulescateg', ['ruleid' => $rule->ruleid]);
 
-                    if (!empty($coursecategorieids) && !empty($badgecategorienames)) {
-                        // Loop through each selected course category and badge category
+                    if (in_array(0, $coursecategorieids)) {
+                        // If at least one course category ID is 0, perform necessary actions
+
+                        // Retrieve all course categories
+                        $categories = core_course_category::get_all();
+
+                        foreach ($badgecategorienames as $badgecategoriename) {
+                            foreach ($categories as $category) {
+                                // Get the category ID
+                                $coursecategorieid = $category->id;
+
+                                // Create a new rule
+                                $newRule = createNewRule($rule->ruleid, $oauth2Id, $coursecategorieid, $badgecategoriename);
+
+                                // Insert the new rule
+                                $DB->insert_record('local_obf_rulescateg', $newRule);
+                            }
+                        }
+                    } else if (!empty($coursecategorieids) && !empty($badgecategorienames)) {
+                        // If course category IDs and badge category names are not empty, loop through them
+
                         foreach ($coursecategorieids as $coursecategorieid) {
                             foreach ($badgecategorienames as $badgecategoriename) {
                                 // Create a new rule
-                                $newRule = new stdClass();
-                                $newRule->ruleid = $rule->ruleid;
-                                $newRule->coursecategorieid = $coursecategorieid;
-                                $newRule->badgecategoriename = $badgecategoriename;
-                                $newRule->oauth2_id = $oauth2Id;
+                                $newRule = createNewRule($rule->ruleid, $oauth2Id, $coursecategorieid, $badgecategoriename);
 
-                                $data->ruleid = $rule->ruleid;
-
-                                // Insert the new rule.
-                                $newRule = $DB->insert_record('local_obf_rulescateg', $newRule);
+                                // Insert the new rule
+                                $DB->insert_record('local_obf_rulescateg', $newRule);
                             }
                         }
                     }
                 }
-
             }
 
             // New rule.

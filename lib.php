@@ -435,3 +435,24 @@ if (!function_exists('users_order_by_sql')) {
 
 }
 
+/**
+ * Creates a new rule object with the provided parameters.
+ *
+ * @param int    $ruleid            The rule ID.
+ * @param string $oauth2Id          The OAuth2 ID.
+ * @param int    $coursecategorieid The course category ID.
+ * @param string $badgecategoriename The badge category name.
+ *
+ * @return stdClass The newly created rule object.
+ */
+function createNewRule($ruleid, $oauth2Id, $coursecategorieid, $badgecategoriename): stdClass {
+    $newRule = new stdClass();
+    $newRule->id = null;
+    $newRule->ruleid = $ruleid;
+    $newRule->oauth2_id = $oauth2Id;
+    $newRule->coursecategorieid = $coursecategorieid;
+    $newRule->badgecategoriename = $badgecategoriename;
+
+    return $newRule;
+}
+

@@ -120,10 +120,13 @@ class obf_config_oauth2_form extends moodleform {
         $badgecategories = array(
             0 => 'All'
         );
-        $clientcateg = $client->get_categories();
-        if ($clientcateg) {
-            foreach ($clientcateg as $category) {
-                $badgecategories[$category] = $category;
+
+        if($client->client_id() && $client->oauth2_access_token()) {
+            $clientcateg = $client->get_categories();
+            if ($clientcateg) {
+                foreach ($clientcateg as $category) {
+                    $badgecategories[$category] = $category;
+                }
             }
         }
 
@@ -135,16 +138,16 @@ class obf_config_oauth2_form extends moodleform {
         if (empty($rules)) {
             // Aucune règle n'est associée, créer un seul ensemble de blocs
             // Add header for Moodle categories
-            $mform->addElement('header', 'chooseurmoodlecategories', get_string('Rules', 'local_plugin'));
+            $mform->addElement('header', 'chooseurmoodlecategories', get_string('rules', 'local_obf'));
             $mform->setExpanded('chooseurmoodlecategories');
 
             // Add autocomplete field for Moodle course categories
-            $mform->addElement('autocomplete', 'coursecategorieid', get_string('choosecategories', 'local_plugin'),
+            $mform->addElement('autocomplete', 'coursecategorieid', get_string('choosecategories', 'local_obf'),
                 $categoryoptions, $options);
             $mform->setType('coursecategorieid', PARAM_INT);
 
             // Add autocomplete field for badge categories
-            $mform->addElement('autocomplete', 'badgecategoriename', get_string('chooseurbadgecategories', 'local_plugin'),
+            $mform->addElement('autocomplete', 'badgecategoriename', get_string('chooseurbadgecategories', 'local_obf'),
                 $badgecategories, $options);
             $mform->setType('badgecategoriename', PARAM_TEXT);
         } else {
