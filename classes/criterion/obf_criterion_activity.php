@@ -182,11 +182,20 @@ class obf_criterion_activity extends obf_criterion_course {
         global $DB;
 
         $activities = array();
-        $cmrecords = $DB->get_records('course_modules', array('course' => $courseid));
+        $sql = "SELECT * FROM {course_modules} WHERE course = $courseid AND completion > 0";
+        $cmrecords = $DB->get_records_sql($sql);
         foreach ($cmrecords as $cmrecord) {
             $modulename = $DB->get_field('modules', 'name', array('id' => $cmrecord->module));
-            $activities[$cmrecord->id] = $DB->get_field($modulename, 'name', array('id' => $cmrecord->instance));
+            $section = $DB->get_record_sql('SELECT * FROM {course_sections} WHERE id = ?', array('id' => $cmrecord->section));
+
+            if (empty($section->name)) {
+                $section->name = get_string('section', 'core') . ' ' . $section->section;
+            }
+
+            $activities[$cmrecord->id] =
+                $section->name . ' - ' . $DB->get_field($modulename, 'name', array('id' => $cmrecord->instance));
         }
+
         return $activities;
     }
 
@@ -363,14 +372,7 @@ class obf_criterion_activity extends obf_criterion_course {
         $mform->addElement('html', html_writer::tag('p', get_string('selectactivity', 'local_obf')));
 
         $existing = array();
-        $completedby = array_map(
-            function($a) {
-                if (array_key_exists('completedby', $a)) {
-                    return $a['completedby'];
-                }
-                return false;
-            }, $params);
-        foreach ($params as $key => $param) {
+        foreach ($params as  $param) {
             if (array_key_exists('module', $param)) {
                 $existing[] = $param['module'];
             }
@@ -379,15 +381,9 @@ class obf_criterion_activity extends obf_criterion_course {
         foreach ($modules as $key => $mod) {
             $mform->addElement('advcheckbox', 'module_' . $key,
                 $mod, null, array('group' => 1), array(0, $key));
-            $mform->addElement('date_selector', 'completedby_' . $key,
-                get_string('activitycompletedby', 'local_obf'),
-                array('optional' => true, 'startyear' => date('Y')));
         }
         foreach ($existing as $modid) {
             $mform->setDefault('module_' . $modid, $modid);
-        }
-        foreach ($completedby as $key => $value) {
-            $mform->setDefault('completedby_' . $key, $value);
         }
     }
 
