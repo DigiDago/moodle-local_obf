@@ -199,7 +199,9 @@ class obf_config_oauth2_form extends moodleform {
 
         $mform->addElement('button', 'add_rules_button', get_string('addrules', 'local_obf'));
         $mform->addElement('hidden', 'add_rules_value', false);
+        $mform->setType('add_rules_value', PARAM_BOOL);
         $mform->addElement('hidden', 'ruleid', $ruleid);
+        $mform->setType('ruleid', PARAM_INT);
         $mform->closeHeaderBefore('add_rules_button');
 
         // Load the separate JavaScript file and call the event handler.

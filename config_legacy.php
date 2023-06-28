@@ -69,7 +69,8 @@ switch ($action) {
                 $client->deauthenticate();
                 redirect(new moodle_url('/local/obf/config.php'),
                     get_string('deauthenticationsuccess', 'local_obf'));
-            } else if (!empty($data->obftoken) && !empty($data->url)) { // OBF request token is set, (re)do authentication.
+            } else if (!empty($data->obftoken) && !empty($data->url)) {
+                // OBF request token is set, (re)do authentication.
                 try {
 
                     $client->authenticate($data->obftoken, $data->url);

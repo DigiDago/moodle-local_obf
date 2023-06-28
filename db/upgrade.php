@@ -830,5 +830,31 @@ function xmldb_local_obf_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2023041802, 'local', 'obf');
     }
 
+    if ($oldversion < 2023041808) {
+        // Vérifier si les valeurs sont déjà définies
+        $emailProviderValue = get_config('local_obf', 'email_provider_local_obf_revoked_locked');
+        $messageProviderValue = get_config('local_obf', 'message_provider_local_obf_revoked_enabled');
+
+        // Vérifier si les valeurs sont différentes des nouvelles valeurs
+        if ($emailProviderValue !== '1') {
+            // Mise à jour de la valeur 'email_provider_local_obf_revoked_locked'
+            $DB->execute(
+                "UPDATE {config_plugins} SET value = :value WHERE name = 'email_provider_local_obf_revoked_locked'",
+                array('value' => 1)
+            );
+        }
+
+        if ($messageProviderValue !== 'popup') {
+            // Mise à jour de la valeur 'message_provider_local_obf_revoked_enabled'
+            $DB->execute(
+                "UPDATE {config_plugins} SET value = :value WHERE name = 'message_provider_local_obf_revoked_enabled'",
+                array('value' => 'popup')
+            );
+        }
+
+        // Mettre à jour la version
+        upgrade_plugin_savepoint(true, 2023041808, 'local', 'obf');
+    }
+
     return true;
 }

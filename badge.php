@@ -105,6 +105,10 @@ switch ($action) {
         }
         break;
 
+    case 'historycsv':
+        $PAGE->get_renderer('local_obf')->create_csv($badge);
+        break;
+
     // Show the list of badges.
     case 'list':
         require_capability('local/obf:viewallbadges', $context);
@@ -213,7 +217,6 @@ switch ($action) {
                 $content .= $PAGE->get_renderer('local_obf')->page_badgedetails(
                     $client, $badge, $context, $show, $page, $message);
                 break;
-
         }
 
         break;

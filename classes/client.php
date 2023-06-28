@@ -24,6 +24,8 @@
 
 namespace classes;
 
+use context_course;
+use core\message\message;
 use curl;
 use dml_write_exception;
 use Exception;
@@ -768,6 +770,51 @@ class obf_client {
                 $recipientsnameemail[] = fullname($user) . ' <' . $user->email . '>';
             } else {
                 $recipientsnameemail[] = $user->email;
+            }
+
+            // Sending notification.
+            // Get the user ID who is receiving the badge.
+            $userId = $user->id;
+
+            // Compose the message
+            $message = new message();
+            $message->component = 'local_obf'; // The component triggering the message.
+            $message->name = 'issued'; // The name of your custom message.
+            $message->userfrom = get_admin(); // The user sending the message (can be an admin or system).
+            $message->userto = \core_user::get_user($userId); // The user receiving the message.
+            $message->subject = 'You received an Open Badge!';
+            $message->fullmessage = 'Congratulations! You have received an Open Badge.';
+            $message->fullmessageformat = FORMAT_PLAIN;
+
+            // Send the message
+            message_send($message);
+
+            $courseId = $course; // ID du cours
+            $capability = 'local/obf:viewspecialnotif'; // Nom de la capacité
+
+            // Récupérer les rôles correspondant à la capacité
+            $roles = get_roles_with_capability($capability, CAP_ALLOW);
+
+            // Récupérer les utilisateurs ayant les rôles correspondants dans le cours
+            $managerusers = get_role_users(array_keys($roles), context_course::instance($courseId), false, 'u.*');
+
+            // Parcourir la liste des utilisateurs
+            foreach ($managerusers as $manageruser) {
+                // Accéder aux informations de l'utilisateur
+                $userId = $manageruser->id;
+
+                // Compose the message
+                $message = new message();
+                $message->component = 'local_obf'; // The component triggering the message.
+                $message->name = 'issuedbadgetostudent'; // The name of your custom message.
+                $message->userfrom = get_admin(); // The user sending the message (can be an admin or system).
+                $message->userto = \core_user::get_user($userId); // The user receiving the message.
+                $message->subject = "User $user->fullname received a new badge";
+                $message->fullmessage = "User $user->fullname has received a new badge.";
+                $message->fullmessageformat = FORMAT_PLAIN;
+
+                // Send the message
+                message_send($message);
             }
         }
 

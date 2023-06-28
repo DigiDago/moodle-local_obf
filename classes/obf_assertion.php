@@ -26,6 +26,8 @@ namespace classes;
 
 use Assertion;
 use cache;
+use context_course;
+use core\message\message;
 use stdClass;
 use type;
 
@@ -201,7 +203,7 @@ class obf_assertion {
         global $CFG;
         require_once($CFG->dirroot . '/message/lib.php');
         foreach ($users as $userto) {
-            $message = new \core\message\message();
+            $message = new message();
             $badge = $this->get_badge();
             $messageparams = new stdClass();
             $messageparams->revokername = fullname($revoker);
@@ -217,6 +219,34 @@ class obf_assertion {
             $message->fullmessagehtml = '';
             $message->smallmessage = '';
             message_send($message);
+
+            $courseId = $badge->get_course_id(); // ID du cours.
+            $capability = 'local/obf:viewspecialnotif'; // Nom de la capacité
+
+            // Récupérer les rôles correspondant à la capacité
+            $roles = get_roles_with_capability($capability, CAP_ALLOW);
+
+            // Récupérer les utilisateurs ayant les rôles correspondants dans le cours
+            $managerusers = get_role_users(array_keys($roles), context_course::instance($courseId), false, 'u.*');
+
+            // Parcourir la liste des utilisateurs
+            foreach ($managerusers as $manageruser) {
+                // Accéder aux informations de l'utilisateur
+                $userId = $manageruser->id;
+
+                // Compose the message
+                $message = new message();
+                $message->component = 'local_obf'; // The component triggering the message.
+                $message->name = 'revokedbadgetostudent'; // The name of your custom message.
+                $message->userfrom = get_admin(); // The user sending the message (can be an admin or system).
+                $message->userto = \core_user::get_user($userId); // The user receiving the message.
+                $message->subject = "User $userto->fullname badge revoked";
+                $message->fullmessage = "User $userto->fullname badge has been revoked.";
+                $message->fullmessageformat = FORMAT_PLAIN;
+
+                // Send the message
+                message_send($message);
+            }
         }
     }
 
