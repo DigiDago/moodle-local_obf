@@ -22,15 +22,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use classes\obf_assertion_collection;
 use classes\obf_backpack;
 use classes\obf_user_preferences;
-use classes\obf_assertion_collection;
 
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/obfform.php');
 require_once(__DIR__ . '/../renderer.php');
-
 $PAGE->requires->jquery_plugin('obf-emailverifier', 'local_obf');
 
 /**
@@ -58,7 +57,7 @@ class obf_userconfig_form extends local_obf_form_base {
             // Users can manage displayment of badges.
             $mform->addElement('header', 'header_userprefeferences_fields',
                 get_string('userpreferences', 'local_obf'));
-            $this->setexpanded($mform, 'header_userprefeferences_fields');
+            $this->setExpanded($mform, 'header_userprefeferences_fields');
 
             $mform->addElement('advcheckbox', 'badgesonprofile', get_string('showbadgesonmyprofile', 'local_obf'));
             $mform->setDefault('badgesonprofile', $userpreferences->get_preference('badgesonprofile'));
@@ -97,7 +96,7 @@ class obf_userconfig_form extends local_obf_form_base {
 
         $mform->addElement('header', 'header_' . $backpack->get_providershortname() . 'backpack_fields',
             get_string('backpackprovidersettings', 'local_obf', $providername));
-        $this->setexpanded($mform, 'header_' . $backpack->get_providershortname() . 'backpack_fields', false);
+        $this->setExpanded($mform, 'header_' . $backpack->get_providershortname() . 'backpack_fields');
 
         $statustext = html_writer::tag('span', get_string($langkey, 'local_obf'),
             array('class' => $langkey));
@@ -114,7 +113,7 @@ class obf_userconfig_form extends local_obf_form_base {
         if ($backpack->is_connected()) {
             $groups = $backpack->get_groups();
 
-            if (count($groups) === 0) {
+            if (empty($groups) || count($groups) === 0) {
                 $mform->addElement('static', 'nogroups', get_string('backpackgroups', 'local_obf'),
                     get_string('nobackpackgroups', 'local_obf'));
             } else {
@@ -132,8 +131,12 @@ class obf_userconfig_form extends local_obf_form_base {
                     get_string('backpackgroups', 'local_obf'), '<br  />', true);
                 $mform->addHelpButton($groupprefix, 'backpackgroups', 'local_obf');
 
-                foreach ($backpack->get_group_ids() as $id) {
-                    $mform->setDefault($groupprefix . '[' . $id . ']', true);
+                if (get_user_preferences('local_obf_userprefsaved') == '1') {
+                    foreach ($backpack->get_group_ids() as $id) {
+                        $mform->setDefault($groupprefix . '[' . $id . ']', true);
+                    }
+                } else {
+                    $mform->setDefault($groupprefix . '[' . 0 . ']', true);
                 }
             }
         }

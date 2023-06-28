@@ -281,7 +281,7 @@ switch ($action) {
             }
 
             // New rule.
-            if (isset($data->add_rules_value) && $data->add_rules_value == 'true') {
+            if (isset($data->add_rules_value) && $data->add_rules_value == 1) {
                 // Create a new rule in the local_obf_rulescateg table.
                 $newRule = new stdClass();
                 $newRule->ruleid = $data->ruleid + 1;

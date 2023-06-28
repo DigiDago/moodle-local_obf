@@ -23,10 +23,8 @@
  */
 
 namespace classes;
-use Some;
-use The;
+use stdClass;
 use User;
-use What;
 
 /**
  * User preferences -class.
@@ -225,6 +223,7 @@ class obf_user_preferences {
             $inparams = array_merge($inparams, array('userid' => $this->userid));
             $DB->delete_records_select($preftable, 'user_id = :userid AND name ' . $insql, $inparams);
         }
+
         foreach ($requiredkeys as $key) {
             if (in_array($key, $existing)) {
                 $toupdate = $DB->get_record($preftable,
@@ -243,5 +242,4 @@ class obf_user_preferences {
             }
         }
     }
-
 }

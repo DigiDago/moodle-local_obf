@@ -86,8 +86,15 @@ switch ($action) {
                 }
             }
             redirect($url);
-        } else if (($data = $form->get_data())) { // User configuration was saved.
+        } else if (($data = $form->get_data())) {
+            // User configuration was saved.
             $obfuserpreferences->save_preferences($data);
+
+            $userID = $USER->id; // ID de l'utilisateur.
+            $preferenceName = 'local_obf_userprefsaved'; // Nom de la préférence.
+
+            set_user_preference($preferenceName, true, $userID);
+
             $redirecturl = new moodle_url('/local/obf/userconfig.php', array('action' => 'edit'));
             // If were saving backpack data, we can safely assume that the backpack exists, because it.
             // had to be created before (via verifyemail.php).
