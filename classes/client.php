@@ -29,6 +29,9 @@ use core\message\message;
 use curl;
 use dml_write_exception;
 use Exception;
+use html_writer;
+use local_obf_html;
+use moodle_url;
 use url;
 
 defined('MOODLE_INTERNAL') || die();
@@ -491,7 +494,26 @@ class obf_client {
         if ($courseid) {
             $course = get_course($courseid);
 
-            $rules = $DB->get_records('local_obf_rulescateg', ['oauth2_id' => obf_client::get_instance()->oauth2->id, 'coursecategorieid' => $course->category]);
+            $categoryId = $course->category;
+
+            // Get the category path.
+            $categoryPath = $DB->get_field('course_categories', 'path', ['id' => $categoryId]);
+
+            // Split the category path into an array of category IDs.
+            $categoryIds = explode('/', trim($categoryPath, '/'));
+
+            // Add the current category ID to the array.
+            $categoryIds[] = $categoryId;
+
+            // Prepare the placeholders for the SQL query.
+            $placeholders = implode(',', array_fill(0, count($categoryIds), '?'));
+
+            // Construct the SQL query.
+            $sql = "SELECT * FROM {local_obf_rulescateg} WHERE oauth2_id = ? AND (coursecategorieid IN ($placeholders))";
+            $params = [obf_client::get_instance()->oauth2->id];
+            $params = array_merge($params, $categoryIds);
+
+            $rules = $DB->get_records_sql($sql, $params);
 
             $hasZero = false; // Variable to track if at least one occurrence of zero is found.
 
@@ -510,7 +532,6 @@ class obf_client {
                 $categories = []; // Reset $categories to null if an occurrence of zero is found.
             }
         }
-
 
         if (count($categories) > 0) {
             $params['category'] = implode('|', $categories);
@@ -774,43 +795,101 @@ class obf_client {
 
             // Sending notification.
             // Get the user ID who is receiving the badge.
-            $userId = $user->id;
+            $userid = $user->id;
+            $courseid = $badge->get_course_id(); // ID du cours
+
 
             // Compose the message
             $message = new message();
             $message->component = 'local_obf'; // The component triggering the message.
             $message->name = 'issued'; // The name of your custom message.
-            $message->userfrom = get_admin(); // The user sending the message (can be an admin or system).
-            $message->userto = \core_user::get_user($userId); // The user receiving the message.
-            $message->subject = 'You received an Open Badge!';
-            $message->fullmessage = 'Congratulations! You have received an Open Badge.';
-            $message->fullmessageformat = FORMAT_PLAIN;
+            $message->userfrom = \core_user::get_noreply_user(); // The user sending the message (can be an admin or system).
+            $message->userto = \core_user::get_user($userid); // The user receiving the message.
+            $badgename = $badge->get_name();
+            $message->subject = get_string('congratsbadgeearned', 'local_obf', $badgename);
+            $courseurl = new moodle_url('/course/view.php', array('id' => $courseid));
+            if (empty($courseid)) {
+                $courseid = 1;
+            }
+            $coursename = get_course($courseid)->fullname;
+
+            $courselink = html_writer::link($courseurl, $coursename);
+            $badgelink = $badge->get_name();
+
+            // We need both.
+            $message->fullmessage = get_string('newbadgeearned', 'local_obf',
+                array('courselink' => $courselink, 'badgelink' => $badgelink));
+            $message->fullmessagehtml = get_string('newbadgeearned', 'local_obf',
+                array('courselink' => $courselink, 'badgelink' => $badgelink));
+            $message->fullmessageformat = FORMAT_MARKDOWN;
 
             // Send the message
             message_send($message);
 
-            $courseId = $course; // ID du cours
-            $capability = 'local/obf:viewspecialnotif'; // Nom de la capacité
+            $capability = 'local/obf:viewspecialnotif'; // Capability name
 
-            // Récupérer les rôles correspondant à la capacité
+            // Get the roles matching the capability
             $roles = get_roles_with_capability($capability, CAP_ALLOW);
 
-            // Récupérer les utilisateurs ayant les rôles correspondants dans le cours
-            $managerusers = get_role_users(array_keys($roles), context_course::instance($courseId), false, 'u.*');
+            // Get the users with the matching roles in the course
+            $roleIds = array_keys($roles);
+            $managerusers = array();
+            foreach ($roleIds as $roleId) {
+                $roleUsers = get_role_users($roleId, context_course::instance($courseid), false, 'u.*');
+
+                // Add role users to $managerusers only if they don't already exist
+                foreach ($roleUsers as $roleUser) {
+                    $userExists = false;
+
+                    foreach ($managerusers as $manageruser) {
+                        if ($manageruser->id == $roleUser->id) {
+                            $userExists = true;
+                            break;
+                        }
+                    }
+
+                    if (!$userExists) {
+                        $managerusers[] = $roleUser;
+                    }
+                }
+            }
+
+            // If no users found, send the notification to platform admins
+            if (empty($managerusers) && $courseid == 1) {
+                $managerusers = get_admins();
+            }
 
             // Parcourir la liste des utilisateurs
             foreach ($managerusers as $manageruser) {
                 // Accéder aux informations de l'utilisateur
-                $userId = $manageruser->id;
+                $userid = $manageruser->id;
 
                 // Compose the message
                 $message = new message();
                 $message->component = 'local_obf'; // The component triggering the message.
                 $message->name = 'issuedbadgetostudent'; // The name of your custom message.
-                $message->userfrom = get_admin(); // The user sending the message (can be an admin or system).
-                $message->userto = \core_user::get_user($userId); // The user receiving the message.
-                $message->subject = "User $user->fullname received a new badge";
-                $message->fullmessage = "User $user->fullname has received a new badge.";
+                $message->userfrom = \core_user::get_noreply_user(); // The user sending the message (can be an admin or system).
+                $message->userto = \core_user::get_user($userid); // The user receiving the message.
+                $badgename = $badge->get_name();
+                $courseurl = new moodle_url('/course/view.php', array('id' => $courseid));
+                if (empty($courseid)) {
+                    $courseid = 1;
+                }
+                $coursename = get_course($courseid)->fullname;
+
+                $courselink = html_writer::link($courseurl, $coursename);
+                $message->subject = get_string('badgeissuedsubject', 'local_obf', [
+                    'badgename' => $badgename,
+                    'firstname' => $user->firstname,
+                    'lastname' => $user->lastname,
+                ]);
+
+                $message->fullmessage = get_string('badgeissuedbody', 'local_obf', [
+                    'badgename' => $badgename,
+                    'firstname' => $user->firstname,
+                    'lastname' => $user->lastname,
+                    'courselink' => $courselink,
+                ]);
                 $message->fullmessageformat = FORMAT_PLAIN;
 
                 // Send the message

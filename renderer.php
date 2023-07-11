@@ -1345,7 +1345,10 @@ class local_obf_renderer extends plugin_renderer_base {
         $row->cells[] = $expirationdate;
         $row->cells[] = $courses;
         $row->cells[] = html_writer::link(new moodle_url('/local/obf/event.php',
-            array('id' => $assertion->get_id(), 'clientid' => $this->get_client_id())),
+            array(
+                'id' => $assertion->get_id(),
+                'clientid' => $this->get_client_id(),
+                'course_id' => $logs)),
             get_string('showassertion', 'local_obf'));
 
         return $row;

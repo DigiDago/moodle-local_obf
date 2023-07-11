@@ -362,9 +362,59 @@ $string['coursereset'] = "Delete awarding rules when course is reset.";
 $string['rules'] = 'Rules';
 $string['addrules'] = 'Add a rule';
 $string['choosecategories'] = 'Choose your moodle categories';
-$string['chooseurbadgecategories'] = 'Choose your Open Badge categories';
+$string['chooseurbadgecategories'] = 'Choose your OBF categories';
 $string['exportbadgename'] = 'Badge Name';
 $string['exportrecipients'] = 'Recipients';
 $string['exportissuedon'] = 'Issued On';
 $string['exportexpiresby'] = 'Expires By';
 $string['exportissuedfrom'] = 'Issued From';
+
+$string['privacy:metadata:userid'] = 'User ID';
+$string['privacy:metadata:courseid'] = 'Course ID';
+$string['privacy:metadata:grade'] = 'Grade';
+$string['privacy:metadata:completed_by'] = 'Completed By';
+$string['privacy:metadata:criteria_type'] = 'Criteria Type';
+
+$string['privacy:metadata:id'] = 'ID';
+$string['privacy:metadata:badge_id'] = 'Badge ID';
+$string['privacy:metadata:client_id'] = 'Client ID';
+$string['privacy:metadata:completion_method'] = 'Completion Method';
+$string['privacy:metadata:use_addendum'] = 'Use Addendum';
+$string['privacy:metadata:addendum'] = 'Addendum';
+
+$string['privacy:metadata:subject'] = 'Subject';
+$string['privacy:metadata:body'] = 'Body';
+$string['privacy:metadata:link_text'] = 'Link Text';
+$string['privacy:metadata:footer'] = 'Footer';
+
+$string['privacy:metadata:obf_criterion_id'] = 'OBF Criterion ID';
+$string['privacy:metadata:user_id'] = 'User ID';
+$string['privacy:metadata:met_at'] = 'Met At';
+
+$string['privacy:metadata:email'] = 'Email';
+$string['privacy:metadata:backpack_id'] = 'Backpack ID';
+$string['privacy:metadata:badge_groups'] = 'Badge Groups';
+$string['privacy:metadata:backpack_provider'] = 'Backpack Provider';
+$string['privacy:metadata:backpack_data'] = 'Backpack Data';
+
+$string['privacy:metadata:full_name'] = 'Full Name';
+$string['privacy:metadata:criteria_addendum'] = 'Criteria Addendum';
+$string['privacy:metadata:course_name'] = 'Course Name';
+$string['privacy:metadata:activity_name'] = 'Activity Name';
+$string['privacy:metadata:issue_date'] = 'Issue Date';
+$string['privacy:metadata:expiration_date'] = 'Expiration Date';
+
+$string['privacy:metadata:criterion_courses'] = 'Criterion Courses';
+$string['privacy:metadata:criterion'] = 'Criterion';
+$string['privacy:metadata:email_templates'] = 'Email Templates';
+$string['privacy:metadata:criterion_met'] = 'Criterion Met';
+$string['privacy:metadata:backpack_emails'] = 'Backpack Emails';
+$string['privacy:metadata:remote_data'] = 'Remote Data send to https://openbadgefactory.com/';
+$string['congratsbadgeearned'] = 'Congrats! You earned a new badge: {$a}';
+$string['newbadgeearned'] = '{$a->courselink}<br><hr><br>You earned a new badge: {$a->badgelink}<br><br>Please check your email for more information';
+
+$string['badgerevokedsubject'] = 'The {$a->badgename} badge has been revoked to {$a->firstname} {$a->lastname}.';
+$string['badgerevokedbody'] = 'The {$a->badgename} badge has been revoked to {$a->firstname} {$a->lastname}.<br><br>For more information, please contact your OBF administrator.';
+
+$string['badgeissuedsubject'] = 'The {$a->badgename} badge was issued to {$a->firstname} {$a->lastname}.';
+$string['badgeissuedbody'] = 'The {$a->badgename} badge was issued to {$a->firstname} {$a->lastname}.<br>The badge was issued in course {$a->courselink}.';

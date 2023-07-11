@@ -1270,3 +1270,19 @@ ul.obf-categories li button.active {
 #block-region-side-pre .block_obf_displayer .badgelist li .description {
     display: none;
 }
+
+.delete-button button.btn.btn-secondary {
+    background-color: darkred;
+    border-color: darkred;
+}
+
+.delete-button button.btn.btn-secondary:hover {
+    background-color: red;
+    border-color: red;
+}
+
+.section-text {
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 10px;
+}

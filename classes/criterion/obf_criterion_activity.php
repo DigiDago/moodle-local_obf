@@ -188,12 +188,15 @@ class obf_criterion_activity extends obf_criterion_course {
             $modulename = $DB->get_field('modules', 'name', array('id' => $cmrecord->module));
             $section = $DB->get_record_sql('SELECT * FROM {course_sections} WHERE id = ?', array('id' => $cmrecord->section));
 
+            $activities[$cmrecord->id]['sectionid'] = $section->id;
+
             if (empty($section->name)) {
-                $section->name = get_string('section', 'core') . ' ' . $section->section;
+                $activities[$cmrecord->id]['sectionname'] = get_string('section', 'core') . ' ' . $section->section;
+            } else {
+                $activities[$cmrecord->id]['sectionname'] = $section->name;
             }
 
-            $activities[$cmrecord->id] =
-                $section->name . ' - ' . $DB->get_field($modulename, 'name', array('id' => $cmrecord->instance));
+            $activities[$cmrecord->id]['name'] = $DB->get_field($modulename, 'name', array('id' => $cmrecord->instance));
         }
 
         return $activities;
@@ -369,23 +372,46 @@ class obf_criterion_activity extends obf_criterion_course {
      * @param array $params
      */
     private function get_form_activities(&$mform, $modules, $params) {
-        $mform->addElement('html', html_writer::tag('p', get_string('selectactivity', 'local_obf')));
+        $mform->addElement('html', html_writer::tag('h2', get_string('selectactivity', 'local_obf')));
 
         $existing = array();
-        foreach ($params as  $param) {
+        foreach ($params as $param) {
             if (array_key_exists('module', $param)) {
                 $existing[] = $param['module'];
             }
         }
 
+        $groupedModules = array();
         foreach ($modules as $key => $mod) {
-            $mform->addElement('advcheckbox', 'module_' . $key,
-                $mod, null, array('group' => 1), array(0, $key));
+            $sectionId = $mod['sectionid'];
+            $sectionname = $mod['sectionname'];
+            $moduleName = $mod['name'];
+
+            if (!isset($groupedModules[$sectionId])) {
+                $groupedModules[$sectionId] = array(
+                    'header' => 'section_' . $sectionId,
+                    'sectionname' => $sectionname,
+                    'modules' => array(),
+                );
+            }
+
+            $groupedModules[$sectionId]['modules'][$key] = $moduleName;
         }
+
+        foreach ($groupedModules as $sectionId => $groupData) {
+            $mform->addElement('html', html_writer::tag('p', $groupData['sectionname'], array('class' => 'section-text')));
+
+            foreach ($groupData['modules'] as $moduleId => $moduleName) {
+                $mform->addElement('advcheckbox', 'module_' . $moduleId,
+                    $moduleName, null, array('group' => $sectionId), array(0, $moduleId));
+            }
+        }
+
         foreach ($existing as $modid) {
             $mform->setDefault('module_' . $modid, $modid);
         }
     }
+
 
     /**
      * Get module instance ids this activity criterion item is asscociated to.

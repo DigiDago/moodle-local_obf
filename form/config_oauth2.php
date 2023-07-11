@@ -152,9 +152,16 @@ class obf_config_oauth2_form extends moodleform {
             $mform->setType('badgecategoriename', PARAM_TEXT);
         } else {
             $rulecount = 1;
+
+            $mform->addElement('hidden', 'delete_rule', false);
+            $mform->setType('delete_rule', PARAM_BOOL);
+            $mform->addElement('hidden', 'delete_rule_id', null);
+            $mform->setType('delete_rule_id', PARAM_INT);
+
             foreach ($rules as $rule) {
                 // Créer un nouveau bloc 'chooseurmoodlecategories' pour chaque règle.
-                $ruledatas = $DB->get_records('local_obf_rulescateg', ['ruleid' => $rule->ruleid, 'oauth2_id' => optional_param('id', null, PARAM_INT)]);
+                $ruledatas = $DB->get_records('local_obf_rulescateg',
+                    ['ruleid' => $rule->ruleid, 'oauth2_id' => optional_param('id', null, PARAM_INT)]);
 
                 $badgedefaultcateg = [];
                 $coursedefaultcateg = [];
@@ -186,8 +193,19 @@ class obf_config_oauth2_form extends moodleform {
                 $mform->setType('badgecategoriename_' . $rule->ruleid, PARAM_TEXT);
                 $mform->setDefaults(['badgecategoriename_' . $rule->ruleid => $badgedefaultcateg]);
 
+                // Create the delete button element.
+                $deleteButton = $mform->addElement('button', 'delete_rule_button',
+                    get_string('delete_rule', 'local_obf'));
+
+                // Set the label for the delete button.
+                $deleteButton->setAttributes([
+                    'value' => get_string('delete_rule_button', 'local_obf'),
+                    'class' => 'delete-button',
+                    'ruleid' => $rule->ruleid
+                ]);
+
                 // Count number of rules.
-                $ruleid = $rule->ruleid;
+                $numberofrule = $rule->ruleid;
                 $rulecount++;
             }
         }
@@ -200,8 +218,8 @@ class obf_config_oauth2_form extends moodleform {
         $mform->addElement('button', 'add_rules_button', get_string('addrules', 'local_obf'));
         $mform->addElement('hidden', 'add_rules_value', false);
         $mform->setType('add_rules_value', PARAM_BOOL);
-        $mform->addElement('hidden', 'ruleid', $ruleid);
-        $mform->setType('ruleid', PARAM_INT);
+        $mform->addElement('hidden', 'numberofrule', $numberofrule);
+        $mform->setType('numberofrule', PARAM_INT);
         $mform->closeHeaderBefore('add_rules_button');
 
         // Load the separate JavaScript file and call the event handler.

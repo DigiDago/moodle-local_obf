@@ -164,7 +164,7 @@ switch ($action) {
     case 'revoke':
         if ($assertion) {
             $redirecturl = new moodle_url('/local/obf/event.php', array(
-                'id' => $eventid, 'clientid' => $clientid, 'action' => 'view'
+                'id' => $eventid, 'clientid' => $clientid, 'action' => 'view', 'course_id' => $courseid
             ));
             if (count($emailar) > 0) {
                 try {

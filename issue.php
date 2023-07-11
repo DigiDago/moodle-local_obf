@@ -35,8 +35,7 @@ require_once($CFG->dirroot . '/user/lib.php');
 require_once(__DIR__ . '/classes/event.php');
 
 $clientid = optional_param('clientid', null, PARAM_ALPHANUM);
-
-obf_client::connect($clientid, $USER);
+$client = obf_client::connect($clientid, $USER);
 
 $badgeid = required_param('id', PARAM_ALPHANUM);
 $courseid = optional_param('courseid', null, PARAM_INT);
@@ -66,7 +65,9 @@ $PAGE->requires->jquery_plugin('obf-simplemde', 'local_obf');
 $PAGE->requires->jquery_plugin('obf-criteria-markdown', 'local_obf');
 
 $content = $OUTPUT->header();
-$badge = obf_badge::get_instance($badgeid);
+$badge = obf_badge::get_instance($badgeid, $client);
+
+$badge->set_course_id($courseid);
 
 // Fix breadcrumbs.
 navigation_node::override_active_url(new moodle_url('/local/obf/badge.php',

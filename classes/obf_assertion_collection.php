@@ -145,33 +145,43 @@ class obf_assertion_collection implements Countable, IteratorAggregate {
     public function get_assertion_users(obf_assertion $assertion) {
         global $DB;
 
-        if (count($this->users) === 0) {
+        // Check if $this->users is empty
+        if (empty($this->users)) {
             $emails = array();
 
+            // Collect all recipients' emails from assertions
             foreach ($this->assertions as $a) {
                 $emails = array_merge($emails, $a->get_recipients());
             }
 
+            // Get user records based on email
             $this->users = $DB->get_records_list('user', 'email', $emails);
         }
 
-        $ret = array();
+        $result = array();
 
-        // TODO: check number of SQL-queries performed in this loop.
+        // Loop through the recipients of the assertion
         foreach ($assertion->get_recipients() as $recipient) {
-            // Try to find the user by email.
-            if (($user = $this->find_user_by_email($recipient)) !== false) {
-                $ret[] = $user;
+            // Try to find the user by email
+            $user = $this->find_user_by_email($recipient);
+
+            if ($user !== false) {
+                $result[] = $user;
             } else {
-                // ... and then try to find the user by backpack email.
+                // If not found, try to find the user by backpack email
                 $backpack = obf_backpack::get_instance_by_backpack_email($recipient);
-                $ret[] = $backpack === false ? $recipient : $DB->get_record('user',
-                    array('id' => $backpack->get_user_id()));
+
+                if ($backpack === false) {
+                    $result[] = $recipient;
+                } else {
+                    $result[] = $DB->get_record('user', array('id' => $backpack->get_user_id()));
+                }
             }
         }
 
-        return $ret;
+        return $result;
     }
+
 
     /**
      * Remove badges from collection, that match those defined in users blacklist.

@@ -27,6 +27,7 @@ namespace classes;
 use Assertion;
 use cache;
 use context_course;
+use context_system;
 use core\message\message;
 use stdClass;
 use type;
@@ -197,17 +198,23 @@ class obf_assertion {
      * Send a message to users, that their badge assertion has been revoked.
      *
      * @param stdClass[] $users
-     * @param stdclass $revoker
+     * @param stdClass $revoker
      */
     public function send_revoke_message($users, $revoker) {
-        global $CFG;
+        global $CFG, $COURSE, $USER;
         require_once($CFG->dirroot . '/message/lib.php');
         foreach ($users as $userto) {
-            $message = new message();
+            $message = new \core\message\message();
             $badge = $this->get_badge();
-            $messageparams = new stdClass();
+            $messageparams = new \stdClass();
             $messageparams->revokername = fullname($revoker);
             $messageparams->revokedbadgename = $badge->get_name();
+
+            $courseId = optional_param('course_id', 1, PARAM_INT); // Course ID.
+
+            if (empty($courseId)) {
+                $courseId = $COURSE->id;
+            }
 
             $message->component = 'local_obf';
             $message->name = 'revoked';
@@ -220,29 +227,67 @@ class obf_assertion {
             $message->smallmessage = '';
             message_send($message);
 
-            $courseId = $badge->get_course_id(); // ID du cours.
-            $capability = 'local/obf:viewspecialnotif'; // Nom de la capacité
+            $capability = 'local/obf:viewspecialnotif'; // Capability name
 
-            // Récupérer les rôles correspondant à la capacité
+            // Get the roles matching the capability
             $roles = get_roles_with_capability($capability, CAP_ALLOW);
 
-            // Récupérer les utilisateurs ayant les rôles correspondants dans le cours
-            $managerusers = get_role_users(array_keys($roles), context_course::instance($courseId), false, 'u.*');
+            // Get the users with the matching roles in the course
+            $roleIds = array_keys($roles);
+            $managerusers = array();
+            foreach ($roleIds as $roleId) {
+                $roleUsers = get_role_users($roleId, context_course::instance($courseId), false, 'u.*');
 
-            // Parcourir la liste des utilisateurs
+                // Add role users to $managerusers only if they don't already exist
+                foreach ($roleUsers as $roleUser) {
+                    $userExists = false;
+
+                    foreach ($managerusers as $manageruser) {
+                        if ($manageruser->id == $roleUser->id) {
+                            $userExists = true;
+                            break;
+                        }
+                    }
+
+                    if (!$userExists) {
+                        $managerusers[] = $roleUser;
+                    }
+                }
+            }
+
+            // If no users found, send the notification to platform admins
+            if (empty($managerusers) && $courseId == 1) {
+                $managerusers = get_admins();
+            }
+
+            // Iterate over the list of users
             foreach ($managerusers as $manageruser) {
-                // Accéder aux informations de l'utilisateur
-                $userId = $manageruser->id;
 
                 // Compose the message
-                $message = new message();
+                $message = new \core\message\message();
                 $message->component = 'local_obf'; // The component triggering the message.
                 $message->name = 'revokedbadgetostudent'; // The name of your custom message.
-                $message->userfrom = get_admin(); // The user sending the message (can be an admin or system).
-                $message->userto = \core_user::get_user($userId); // The user receiving the message.
-                $message->subject = "User $userto->fullname badge revoked";
-                $message->fullmessage = "User $userto->fullname badge has been revoked.";
-                $message->fullmessageformat = FORMAT_PLAIN;
+                $message->userfrom = \core_user::get_noreply_user(); // The user sending the message (can be an admin or system).
+                $message->userto = $manageruser; // The user receiving the message.
+                $badgename = $badge->get_name();
+                $message->subject = get_string('badgerevokedsubject', 'local_obf', [
+                    'badgename' => $badgename,
+                    'firstname' => $userto->firstname,
+                    'lastname' => $userto->lastname,
+                ]);
+
+                $message->fullmessage = get_string('badgerevokedbody', 'local_obf', [
+                    'badgename' => $badgename,
+                    'firstname' => $userto->firstname,
+                    'lastname' => $userto->lastname,
+                ]);
+
+                $message->fullmessagehtml = get_string('badgerevokedbody', 'local_obf', [
+                    'badgename' => $badgename,
+                    'firstname' => $userto->firstname,
+                    'lastname' => $userto->lastname,
+                ]);
+                $message->fullmessageformat = FORMAT_MARKDOWN;
 
                 // Send the message
                 message_send($message);
@@ -294,52 +339,22 @@ class obf_assertion {
      * Returns all assertions matching the search criteria.
      *
      * @param obf_client $client The client instance.
-     * @param obf_badge $badge Get only the assertions containing this badge.
-     * @param string $email Get only the assertions related to this email.
+     * @param obf_badge|null $badge Get only the assertions containing this badge.
+     * @param null $email Get only the assertions related to this email.
      * @param int $limit Limit the amount of results.
-     * @return \classes\obf_assertion_collection The assertions.
+     * @param bool $geteachseparately
+     * @param array $searchparams
+     * @return obf_assertion_collection The assertions.
      */
-    public static function get_assertions(obf_client $client,
-        obf_badge $badge = null, $email = null, $limit = -1, $geteachseparately = false, $searchparams = array()) {
+    public static function get_assertions(obf_client $client, obf_badge $badge = null, $email = null, $limit = -1, $geteachseparately = false, $searchparams = array()) {
+        global $DB;
 
         $badgeid = is_null($badge) ? null : $badge->get_id();
         $arr = $client->get_assertions($badgeid, $email, $searchparams);
         $assertions = array();
 
-        // Search and remove.
-        // FIXME: Should remove this if /v1/event/{client_id} send back
-        // sort result with the query param on name or recipient.
-        if (is_array($arr)) {
-            foreach ($arr as $key => $item) {
-                // Check if search query is defined and filter the 'name' and 'recipient' fields.
-                if (isset($searchparams['query']) && !empty($searchparams['query'])) {
-                    $name = $item['name'];
-                    $recipients = $item['recipient'];
-
-                    // Perform case-insensitive matching for 'name' field.
-                    if (stripos($name, $searchparams['query']) === false) {
-                        $recipientMatch = false;
-
-                        // Check if any recipient string matches the search query.
-                        foreach ($recipients as $recipient) {
-                            if (stripos($recipient, $searchparams['query']) !== false) {
-                                $recipientMatch = true;
-                                break; // Match found, no need to continue.
-                            }
-                        }
-
-                        if (!$recipientMatch) {
-                            unset($arr[$key]); // Remove the item if the search query doesn't match.
-                            continue; // Skip to the next item.
-                        }
-                    }
-                }
-            }
-        }
-
         if (!$geteachseparately) {
-
-            // Using populated collection for assertions would result in getting
+            // Using populated collection for assertions would result in getting.
             // the latest badge data, might not match issued data (issued badge data with addendums and changes).
 
             $collection = new obf_badge_collection($client);
@@ -354,7 +369,8 @@ class obf_assertion {
                     $b = self::get_assertion_badge($client, $item['badge_id'], $item['id']);
                 } else {
                     $b = $collection->get_badge($item['badge_id']);
-                    if (is_null($b)) { // Required for deleted and draft badges.
+                    if (is_null($b)) {
+                        // Required for deleted and draft badges.
                         $b = self::get_assertion_badge($client, $item['badge_id'], $item['id']);
                     }
                 }
@@ -372,15 +388,32 @@ class obf_assertion {
                     if (array_key_exists('revoked', $item)) {
                         $assertion->set_revoked($item['revoked']);
                     }
-                    $assertions[] = $assertion;
-                }
 
+                    // Check if the recipient is a valid user email on the platform.
+                    $recipientEmails = $assertion->get_recipients();
+                    $validRecipients = array();
+                    foreach ($recipientEmails as $recipient) {
+                        $user = $DB->get_record('user', array('email' => $recipient));
+                        $nameMatch = stripos($item['name'], $searchparams['query']) !== false;
+                        $recipientMatch = stripos($recipient, $searchparams['query']) !== false;
+                        $fullNameMatch = $user !== false && stripos($user->firstname . ' ' . $user->lastname, $searchparams['query']) !== false;
+
+                        if ($nameMatch || $recipientMatch || $fullNameMatch) {
+                            $validRecipients[] = $recipient;
+                        }
+                    }
+
+                    if (!empty($validRecipients) && !empty($user)) {
+                        $assertion->set_recipients($validRecipients);
+                        $assertions[] = $assertion;
+                    }
+                }
             }
         }
 
         // Sort the assertions by date...
         usort($assertions,
-            function(obf_assertion $a1, obf_assertion $a2) {
+            function (obf_assertion $a1, obf_assertion $a2) {
                 return $a1->get_issuedon() - $a2->get_issuedon();
             });
 
@@ -391,6 +424,7 @@ class obf_assertion {
 
         return new obf_assertion_collection($assertions);
     }
+
 
     /**
      * Returns all assertions matching the search criteria, for all connected clients.

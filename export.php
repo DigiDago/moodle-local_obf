@@ -63,7 +63,6 @@ $csvfile->add_data($headers);
 // Write history data to the CSV file.
 foreach ($history as $assertion) {
     $users = $history->get_assertion_users($assertion);
-
     $logs = $assertion->get_log_entry('course_id');
     $courses = '';
     if (!empty($logs)) {
