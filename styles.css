@@ -1286,3 +1286,7 @@ ul.obf-categories li button.active {
     font-size: 18px;
     margin-bottom: 10px;
 }
+
+.modulename {
+    text-transform: capitalize;
+}

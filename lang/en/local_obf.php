@@ -359,6 +359,8 @@ $string['warningcannoteditafterreview'] =
     'Note that if the badge is awarded when these rules are being reviewed, the rule(s) cannot be edited anymore. Once the badge has been automatically awarded to at least one person, editing of the rules is prohibited. So make sure the rules are set correctly before reviewing.';
 $string['coursereset'] = "Delete awarding rules when course is reset.";
 
+$string['image_not_found'] = 'Error: The link to the badge image could not be retrieved.';
+
 $string['rules'] = 'Rules';
 $string['addrules'] = 'Add a rule';
 $string['choosecategories'] = 'Choose your moodle categories';
@@ -405,17 +407,33 @@ $string['privacy:metadata:activity_name'] = 'Activity Name';
 $string['privacy:metadata:issue_date'] = 'Issue Date';
 $string['privacy:metadata:expiration_date'] = 'Expiration Date';
 
+$string['privacy:metadata:user_preferences'] = 'User preferences';
+$string['privacy:metadata:name'] = 'Name';
+$string['privacy:metadata:value'] = 'Value';
+
+$string['privacy:metadata:user_emails'] = 'User link by backpack emails';
+$string['privacy:metadata:token'] = 'Token';
+$string['privacy:metadata:verified'] = 'Verified';
+$string['privacy:metadata:timestamp'] = 'Timestamp';
+
+$string['privacy:metadata:history_emails'] = 'History email';
+$string['privacy:metadata:course_id'] = 'Course ID';
+
+$string['obf:viewspecialnotif'] = 'This permission allows the role to enable the sending of notifications when a user receives a badge or when it is revoked';
+
 $string['privacy:metadata:criterion_courses'] = 'Criterion Courses';
 $string['privacy:metadata:criterion'] = 'Criterion';
 $string['privacy:metadata:email_templates'] = 'Email Templates';
 $string['privacy:metadata:criterion_met'] = 'Criterion Met';
 $string['privacy:metadata:backpack_emails'] = 'Backpack Emails';
 $string['privacy:metadata:remote_data'] = 'Remote Data send to https://openbadgefactory.com/';
+$string['contact_openbadgefactory'] = 'Please contact https://openbadgefactory.com/ for more details.';
+
 $string['congratsbadgeearned'] = 'Congrats! You earned a new badge: {$a}';
 $string['newbadgeearned'] = '{$a->courselink}<br><hr><br>You earned a new badge: {$a->badgelink}<br><br>Please check your email for more information';
 
-$string['badgerevokedsubject'] = 'The {$a->badgename} badge has been revoked to {$a->firstname} {$a->lastname}.';
-$string['badgerevokedbody'] = 'The {$a->badgename} badge has been revoked to {$a->firstname} {$a->lastname}.<br><br>For more information, please contact your OBF administrator.';
+$string['badgerevokedsubject'] = 'The {$a->badgename} badge has been revoked for users ...';
+$string['badgerevokedbody'] = 'The {$a->badgename} badge has been revoked to {$a->firstname} {$a->lastname}.';
 
-$string['badgeissuedsubject'] = 'The {$a->badgename} badge was issued to {$a->firstname} {$a->lastname}.';
+$string['badgeissuedsubject'] = 'The {$a->badgename} badge was issued to users ...';
 $string['badgeissuedbody'] = 'The {$a->badgename} badge was issued to {$a->firstname} {$a->lastname}.<br>The badge was issued in course {$a->courselink}.';

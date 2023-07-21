@@ -182,6 +182,9 @@ class obf_assertion_collection implements Countable, IteratorAggregate {
         return $result;
     }
 
+    public function get_assertions() {
+        return $this->assertions;
+    }
 
     /**
      * Remove badges from collection, that match those defined in users blacklist.

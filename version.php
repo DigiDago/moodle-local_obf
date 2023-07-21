@@ -24,9 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2023062704;
-$plugin->requires = 2016120509;
+$plugin->version = 2023062709;
+$plugin->requires = 2022041909;
 $plugin->component = 'local_obf';
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = '0.8.1';
-$plugin->dependencies = array();
+$plugin->release = '0.9';

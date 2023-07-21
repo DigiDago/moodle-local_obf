@@ -73,7 +73,7 @@ class certificate_expiration_reminder extends \core\task\scheduled_task {
                 'local_obf');
             $eventdata->fullmessage = get_string('expiringcertificate', 'local_obf',
                 $textparams);
-            $eventdata->fullmessageformat = FORMAT_PLAIN;
+            $eventdata->fullmessageformat = FORMAT_MARKDOWN;
             $eventdata->fullmessagehtml = get_string('expiringcertificate',
                 'local_obf', $textparams);
             $eventdata->smallmessage = get_string('expiringcertificatesubject',

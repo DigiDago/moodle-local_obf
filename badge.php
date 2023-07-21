@@ -82,19 +82,15 @@ switch ($action) {
             $search = optional_param('search', null, PARAM_TEXT);
             $searchparams = array(
                 'api_consumer_id' => OBF_API_CONSUMER_ID,
-                'count_only' => 1,
                 'query' => $search
             );
-            $res = $client->get_assertions(null, null, $searchparams);
-
-            $historysize = $res[0]['result_count'];
 
             $searchparams['count_only'] = 0;
-            $searchparams['limit'] = 10;
-            $searchparams['offset'] = $currpage * 10;
             $searchparams['order_by'] = 'asc';
 
             $history = obf_assertion::get_assertions($client, null, null, -1, false, $searchparams);
+            $historysize = count($history);
+
             $content .= $PAGE->get_renderer('local_obf')->render_client_selector($url, $clientid);
             $content .= $PAGE->get_renderer('local_obf')
                 ->print_issuing_history($client, $context, $historysize, $currpage, $history);

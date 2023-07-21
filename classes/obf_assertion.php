@@ -203,6 +203,10 @@ class obf_assertion {
     public function send_revoke_message($users, $revoker) {
         global $CFG, $COURSE, $USER;
         require_once($CFG->dirroot . '/message/lib.php');
+
+        // Prepare revoked badge message.
+        $messagebadgerevoked = new \core\message\message();
+
         foreach ($users as $userto) {
             $message = new \core\message\message();
             $badge = $this->get_badge();
@@ -222,77 +226,76 @@ class obf_assertion {
             $message->userto = $userto;
             $message->subject = get_string('emailbadgerevokedsubject', 'local_obf', $messageparams);
             $message->fullmessage = get_string('emailbadgerevokedbody', 'local_obf', $messageparams);
-            $message->fullmessageformat = FORMAT_PLAIN;
-            $message->fullmessagehtml = '';
+            $message->fullmessagehtml = get_string('emailbadgerevokedbody', 'local_obf', $messageparams);
+            $message->fullmessageformat = FORMAT_MARKDOWN;
             $message->smallmessage = '';
             message_send($message);
 
-            $capability = 'local/obf:viewspecialnotif'; // Capability name
+            $messagebadgerevoked->fullmessage = $messagebadgerevoked->fullmessage .'<br>'. get_string('badgerevokedbody', 'local_obf', [
+                'badgename' => $badge->get_name(),
+                'firstname' => $userto->firstname,
+                'lastname' => $userto->lastname,
+            ]) . '<br>';
 
-            // Get the roles matching the capability
-            $roles = get_roles_with_capability($capability, CAP_ALLOW);
+            $messagebadgerevoked->fullmessagehtml = $messagebadgerevoked->fullmessagehtml .'<br>'. get_string('badgerevokedbody', 'local_obf', [
+                    'badgename' => $badge->get_name(),
+                    'firstname' => $userto->firstname,
+                    'lastname' => $userto->lastname,
+                ]) . '<br>';
+        }
 
-            // Get the users with the matching roles in the course
-            $roleIds = array_keys($roles);
-            $managerusers = array();
-            foreach ($roleIds as $roleId) {
-                $roleUsers = get_role_users($roleId, context_course::instance($courseId), false, 'u.*');
+        $capability = 'local/obf:viewspecialnotif'; // Capability name.
 
-                // Add role users to $managerusers only if they don't already exist
-                foreach ($roleUsers as $roleUser) {
-                    $userExists = false;
+        // Get the roles matching the capability
+        $roles = get_roles_with_capability($capability, CAP_ALLOW);
 
-                    foreach ($managerusers as $manageruser) {
-                        if ($manageruser->id == $roleUser->id) {
-                            $userExists = true;
-                            break;
-                        }
-                    }
+        // Get the users with the matching roles in the course
+        $roleIds = array_keys($roles);
+        $managerusers = array();
+        foreach ($roleIds as $roleId) {
+            $roleUsers = get_role_users($roleId, context_course::instance($courseId), false, 'u.*');
 
-                    if (!$userExists) {
-                        $managerusers[] = $roleUser;
+            // Add role users to $managerusers only if they don't already exist
+            foreach ($roleUsers as $roleUser) {
+                $userExists = false;
+
+                foreach ($managerusers as $manageruser) {
+                    if ($manageruser->id == $roleUser->id) {
+                        $userExists = true;
+                        break;
                     }
                 }
-            }
 
-            // If no users found, send the notification to platform admins
-            if (empty($managerusers) && $courseId == 1) {
-                $managerusers = get_admins();
-            }
-
-            // Iterate over the list of users
-            foreach ($managerusers as $manageruser) {
-
-                // Compose the message
-                $message = new \core\message\message();
-                $message->component = 'local_obf'; // The component triggering the message.
-                $message->name = 'revokedbadgetostudent'; // The name of your custom message.
-                $message->userfrom = \core_user::get_noreply_user(); // The user sending the message (can be an admin or system).
-                $message->userto = $manageruser; // The user receiving the message.
-                $badgename = $badge->get_name();
-                $message->subject = get_string('badgerevokedsubject', 'local_obf', [
-                    'badgename' => $badgename,
-                    'firstname' => $userto->firstname,
-                    'lastname' => $userto->lastname,
-                ]);
-
-                $message->fullmessage = get_string('badgerevokedbody', 'local_obf', [
-                    'badgename' => $badgename,
-                    'firstname' => $userto->firstname,
-                    'lastname' => $userto->lastname,
-                ]);
-
-                $message->fullmessagehtml = get_string('badgerevokedbody', 'local_obf', [
-                    'badgename' => $badgename,
-                    'firstname' => $userto->firstname,
-                    'lastname' => $userto->lastname,
-                ]);
-                $message->fullmessageformat = FORMAT_MARKDOWN;
-
-                // Send the message
-                message_send($message);
+                if (!$userExists) {
+                    $managerusers[] = $roleUser;
+                }
             }
         }
+
+        // If no users found, send the notification to platform admins
+        if (empty($managerusers) && $courseId == 1) {
+            $managerusers = get_admins();
+        }
+
+        // Iterate over the list of users
+        foreach ($managerusers as $manageruser) {
+
+            // Compose the revoked message
+            $messagebadgerevoked->component = 'local_obf'; // The component triggering the message.
+            $messagebadgerevoked->name = 'revokedbadgetostudent'; // The name of your custom message.
+            $messagebadgerevoked->userfrom = \core_user::get_noreply_user(); // The user sending the message (can be an admin or system).
+            $messagebadgerevoked->userto = $manageruser; // The user receiving the message.
+            $badgename = $badge->get_name();
+            $messagebadgerevoked->subject = get_string('badgerevokedsubject', 'local_obf', [
+                'badgename' => $badgename
+            ]);
+
+            $messagebadgerevoked->fullmessageformat = FORMAT_MARKDOWN;
+
+            // Send the message
+            message_send($messagebadgerevoked);
+        }
+
     }
 
     /**

@@ -1264,8 +1264,11 @@ class local_obf_renderer extends plugin_renderer_base {
             $headingrow[] = new html_table_cell();
             $historytable->head = $headingrow;
 
+            // TODO: better rework API to prevent doing this in local.
+            $paginatedArray = array_chunk($history->get_assertions(), $perpage);
+
             // Add history rows.
-            foreach ($history as $assertion) {
+            foreach ($paginatedArray[$currentpage] as $assertion) {
                 $users = $history->get_assertion_users($assertion);
 
                 // Render the row for each assertion.

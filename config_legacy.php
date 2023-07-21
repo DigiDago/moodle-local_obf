@@ -165,6 +165,7 @@ switch ($action) {
                         $email->set_subject($badge->messagesubject);
 
                         $storage = get_file_storage();
+
                         $imagefile = $storage->get_file(
                             $context->id,
                             'badges',
@@ -172,6 +173,21 @@ switch ($action) {
                             $badge->id,
                             '/',
                             'f1.png');
+
+                        if(!$imagefile) {
+                            $context = context_course::instance($badge->courseid);
+                            $imagefile = $storage->get_file(
+                                $context->id,
+                                'badges',
+                                'badgeimage',
+                                $badge->id,
+                                '/',
+                                'f1.png');
+
+                            if (!$imagefile) {
+                                throw new moodle_exception(get_string('image_not_found', 'mod_yourplugin'));
+                            }
+                        }
 
                         $obfbadge = obf_badge::get_instance_from_array(array(
                             'name' => $badge->name,

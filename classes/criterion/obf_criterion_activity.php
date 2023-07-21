@@ -196,7 +196,15 @@ class obf_criterion_activity extends obf_criterion_course {
                 $activities[$cmrecord->id]['sectionname'] = $section->name;
             }
 
-            $activities[$cmrecord->id]['name'] = $DB->get_field($modulename, 'name', array('id' => $cmrecord->instance));
+            $imageicon = html_writer::empty_tag('img',
+                ['src' =>  get_fast_modinfo($courseid)->get_cms()[$cmrecord->id]->get_icon_url(),
+                'class' => 'activityicon', 'alt' => '', 'role' => 'presentation', 'aria-hidden' => 'true']);
+
+            $activities[$cmrecord->id]['name'] =
+                $imageicon . ' ' .
+                '<span class="modulename">'
+                . $modulename .
+                ' - ' . $DB->get_field($modulename, 'name', array('id' => $cmrecord->instance));
         }
 
         return $activities;
@@ -399,7 +407,9 @@ class obf_criterion_activity extends obf_criterion_course {
         }
 
         foreach ($groupedModules as $sectionId => $groupData) {
-            $mform->addElement('html', html_writer::tag('p', $groupData['sectionname'], array('class' => 'section-text')));
+            $mform->addElement('html',
+                html_writer::tag('div', $groupData['sectionname'], array('class' => 'col-md-9 offset-md-3 section-text'))
+            );
 
             foreach ($groupData['modules'] as $moduleId => $moduleName) {
                 $mform->addElement('advcheckbox', 'module_' . $moduleId,
