@@ -218,8 +218,10 @@ class obf_badge {
         $badgearr = $client->get_badges(self::get_available_categories());
 
         foreach ($badgearr as $badgedata) {
-            $badge = self::get_instance_from_array($badgedata);
-            self::$badgecache[$badge->get_id()] = $badge;
+            if ($badgedata['readyforissuing']) {
+                $badge = self::get_instance_from_array($badgedata);
+                self::$badgecache[$badge->get_id()] = $badge;
+            }
         }
 
         return self::$badgecache;

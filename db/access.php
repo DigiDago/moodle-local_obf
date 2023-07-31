@@ -211,7 +211,7 @@ $capabilities = array(
     // Can view all notifications.
     'local/obf:viewspecialnotif' => array(
         'captype' => 'read',
-        'contextlevel' => CONTEXT_SYSTEM,
+        'contextlevel' => CONTEXT_COURSECAT,
         'archetypes' => array(
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,

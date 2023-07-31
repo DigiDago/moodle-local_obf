@@ -165,6 +165,10 @@ class obf_assertion_collection implements Countable, IteratorAggregate {
             // Try to find the user by email
             $user = $this->find_user_by_email($recipient);
 
+            if ($assertion->is_revoked_for_email($user->email)) {
+                continue;
+            }
+
             if ($user !== false) {
                 $result[] = $user;
             } else {

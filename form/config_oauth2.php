@@ -121,7 +121,7 @@ class obf_config_oauth2_form extends moodleform {
             0 => 'All'
         );
 
-        if($client->client_id() && $client->oauth2_access_token()) {
+        if ($client->client_id() && $client->oauth2_access_token()) {
             $clientcateg = $client->get_categories();
             if ($clientcateg) {
                 foreach ($clientcateg as $category) {
@@ -152,7 +152,7 @@ class obf_config_oauth2_form extends moodleform {
                 $coursedefaultcateg = [];
 
                 if (isset($ruledatas)) {
-                    foreach($ruledatas as $ruledata) {
+                    foreach ($ruledatas as $ruledata) {
                         if (isset($ruledata->badgecategoriename) && $ruledata->badgecategoriename != null) {
                             $badgedefaultcateg[] = $ruledata->badgecategoriename;
                         }
@@ -162,7 +162,7 @@ class obf_config_oauth2_form extends moodleform {
                     }
                 }
 
-                $headerName = 'chooseurmoodlecategories_'. $rule->ruleid;
+                $headerName = 'chooseurmoodlecategories_' . $rule->ruleid;
                 $mform->addElement('header', $headerName, get_string('rules', 'local_obf') . " $rulecount");
                 $mform->setExpanded($headerName);
 
@@ -200,12 +200,17 @@ class obf_config_oauth2_form extends moodleform {
             $submitlabel = get_string('addnewclient', 'local_obf');
         }
 
-        $mform->addElement('button', 'add_rules_button', get_string('addrules', 'local_obf'));
-        $mform->addElement('hidden', 'add_rules_value', false);
+        $buttonarrule = array();
+        $buttonarrule[] = &$mform->createElement('html', "
+                <div class='bd-callout bd-callout-info'>".get_string('addrulelabel', 'local_obf')."</div>");
+        $buttonarrule[] = &$mform->createElement('button', 'add_rules_button', get_string('addrules', 'local_obf'));
+        $buttonarrule[] = &$mform->createElement('hidden', 'add_rules_value', false);
+        $buttonarrule[] = &$mform->createElement('hidden', 'numberofrule', $numberofrule);
         $mform->setType('add_rules_value', PARAM_BOOL);
-        $mform->addElement('hidden', 'numberofrule', $numberofrule);
         $mform->setType('numberofrule', PARAM_INT);
-        $mform->closeHeaderBefore('add_rules_button');
+        $mform->setType('buttonarrule', PARAM_RAW);
+        $mform->addGroup($buttonarrule, 'buttonarrule', '', array(' '), false);
+        $mform->closeHeaderBefore('buttonarrule');
 
         // Load the separate JavaScript file and call the event handler.
         $PAGE->requires->js_call_amd('local_obf/obf_config_oauth2_form', 'init');

@@ -371,6 +371,7 @@ $string['exportissuedon'] = 'Issued On';
 $string['exportexpiresby'] = 'Expires By';
 $string['exportissuedfrom'] = 'Issued From';
 $string['delete_rule_button'] = 'Delete this rule';
+$string['addrulelabel'] = 'Here you can define where badges will be available, by matching OBF categories with Moodle categories.  By default, without specific rule, your OBF badges will be available on all your Moodle categories.';
 
 $string['privacy:metadata:userid'] = 'User ID';
 $string['privacy:metadata:courseid'] = 'Course ID';
@@ -426,14 +427,17 @@ $string['privacy:metadata:criterion'] = 'Criterion';
 $string['privacy:metadata:email_templates'] = 'Email Templates';
 $string['privacy:metadata:criterion_met'] = 'Criterion Met';
 $string['privacy:metadata:backpack_emails'] = 'Backpack Emails';
-$string['privacy:metadata:remote_data'] = 'Remote Data send to https://openbadgefactory.com/';
+$string['privacy:metadata:remote_data'] = 'Remote Data sent to https://openbadgefactory.com/';
 $string['contact_openbadgefactory'] = 'Please contact https://openbadgefactory.com/ for more details.';
 
+$string['badgesonprofiledescri0'] = 'Do not display badge on profil';
+$string['badgesonprofiledescri1'] = 'Display badge on profil';
+
 $string['congratsbadgeearned'] = 'Congrats! You earned a new badge: {$a}';
-$string['newbadgeearned'] = '{$a->courselink}<br><hr><br>You earned a new badge: {$a->badgelink}<br><br>Please check your email for more information';
+$string['newbadgeearned'] = '<b>{$a->courselink}</b><br><hr><br>You earned a new badge: <b>{$a->badgelink}</b><br><br>Please check your email for more information';
 
 $string['badgerevokedsubject'] = 'The {$a->badgename} badge has been revoked for users ...';
-$string['badgerevokedbody'] = 'The {$a->badgename} badge has been revoked to {$a->firstname} {$a->lastname}.';
+$string['badgerevokedbody'] = 'The <b>{$a->badgename}</b> badge has been revoked to <b>{$a->firstname} {$a->lastname}</b>.';
 
 $string['badgeissuedsubject'] = 'The {$a->badgename} badge was issued to users ...';
-$string['badgeissuedbody'] = 'The {$a->badgename} badge was issued to {$a->firstname} {$a->lastname}.<br>The badge was issued in course {$a->courselink}.';
+$string['badgeissuedbody'] = 'The <b>{$a->badgename}</b> badge was issued to <b>{$a->firstname} {$a->lastname}</b>.<br>The badge was issued in course <b>{$a->courselink}.</b>';

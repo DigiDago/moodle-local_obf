@@ -1189,8 +1189,11 @@ class local_obf_renderer extends plugin_renderer_base {
             for ($i = $startindex; $i < $endindex; $i++) {
                 $assertion = $history->get_assertion($i);
                 $users = $history->get_assertion_users($assertion);
-                $historytable->data[] = $this->render_historytable_row($assertion,
-                    $singlebadgehistory, $path, $users);
+
+                if($users) {
+                    $historytable->data[] = $this->render_historytable_row($assertion,
+                        $singlebadgehistory, $path, $users);
+                }
             }
 
             $html .= $htmlpager;
@@ -1272,7 +1275,9 @@ class local_obf_renderer extends plugin_renderer_base {
                 $users = $history->get_assertion_users($assertion);
 
                 // Render the row for each assertion.
-                $historytable->data[] = $this->render_historytable_row($assertion, false, $path, $users);
+                if($users) {
+                    $historytable->data[] = $this->render_historytable_row($assertion, false, $path, $users);
+                }
             }
 
             $html .= $htmlpager;

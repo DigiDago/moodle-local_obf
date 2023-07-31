@@ -25,6 +25,8 @@
 namespace classes;
 
 use context_course;
+use context_coursecat;
+use context_system;
 use core\message\message;
 use curl;
 use dml_write_exception;
@@ -508,6 +510,10 @@ class obf_client {
             // Prepare the placeholders for the SQL query.
             $placeholders = implode(',', array_fill(0, count($categoryIds), '?'));
 
+            // If any rules are define on site we will prevent display categories in case there is no rule for current categ.
+            $anyrulesdefinesql = "SELECT * FROM {local_obf_rulescateg}";
+            $anyrules = $DB->get_records_sql($anyrulesdefinesql);
+
             // Construct the SQL query.
             $sql = "SELECT * FROM {local_obf_rulescateg} WHERE oauth2_id = ? AND (coursecategorieid IN ($placeholders))";
             $params = [obf_client::get_instance()->oauth2->id];
@@ -531,6 +537,10 @@ class obf_client {
             if ($hasZero) {
                 $categories = []; // Reset $categories to null if an occurrence of zero is found.
             }
+        }
+
+        if (empty($rules) && !empty($anyrules)) {
+            return [];
         }
 
         if (count($categories) > 0) {
@@ -781,6 +791,7 @@ class obf_client {
 
         // Compose the message
         $messagemanagerbadgeissue = new message();
+        $courseid = $badge->get_course_id(); // ID du cours
 
         foreach ($users as $user) {
 
@@ -802,7 +813,6 @@ class obf_client {
             // Sending notification.
             // Get the user ID who is receiving the badge.
             $userid = $user->id;
-            $courseid = $badge->get_course_id(); // ID du cours
 
             // Compose the message
             $message = new message();
@@ -853,16 +863,20 @@ class obf_client {
 
         // Send notification to teachers.
         $capability = 'local/obf:viewspecialnotif'; // Capability name
+        if (get_course($courseid)->category) {
+            $contextrole = context_coursecat::instance(get_course($courseid)->category);
+        } else {
+            $contextrole = context_system::instance();
+        }
 
-        // Get the roles matching the capability
-        $roles = get_roles_with_capability($capability, CAP_ALLOW);
+        // Get the roles matching the capability.
+        $roles = get_roles_with_cap_in_context($contextrole, $capability);
 
         // Get the users with the matching roles in the course
-        $roleIds = array_keys($roles);
+        $roleIds = array_keys($roles[0]);
         $managerusers = array();
         foreach ($roleIds as $roleId) {
             $roleUsers = get_role_users($roleId, context_course::instance($courseid), false, 'u.*');
-
             // Add role users to $managerusers only if they don't already exist
             foreach ($roleUsers as $roleUser) {
                 $userExists = false;

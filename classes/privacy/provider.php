@@ -26,11 +26,14 @@ namespace local_obf\privacy;
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\contextlist;
+use core_privacy\local\request\writer;
 
 class provider implements
     // This plugin does store personal user data.
     \core_privacy\local\metadata\provider,
-    \core_privacy\local\request\data_provider {
+    \core_privacy\local\request\data_provider,
+    \core_privacy\local\request\plugin\provider,
+    \core_privacy\local\request\user_preference_provider {
 
     /**
      * Returns meta-data for a given userid.
@@ -39,43 +42,6 @@ class provider implements
      * @return collection
      */
     public static function get_metadata(collection $collection): collection {
-        $collection->add_database_table(
-            'local_obf_criterion_courses',
-            [
-                'userid' => 'privacy:metadata:userid',
-                'courseid' => 'privacy:metadata:courseid',
-                'grade' => 'privacy:metadata:grade',
-                'completed_by' => 'privacy:metadata:completed_by',
-                'criteria_type' => 'privacy:metadata:criteria_type',
-            ],
-            'privacy:metadata:criterion_courses'
-        );
-
-        $collection->add_database_table(
-            'local_obf_criterion',
-            [
-                'id' => 'privacy:metadata:id',
-                'badge_id' => 'privacy:metadata:badge_id',
-                'client_id' => 'privacy:metadata:client_id',
-                'completion_method' => 'privacy:metadata:completion_method',
-                'use_addendum' => 'privacy:metadata:use_addendum',
-                'addendum' => 'privacy:metadata:addendum',
-            ],
-            'privacy:metadata:criterion'
-        );
-
-        $collection->add_database_table(
-            'local_obf_email_templates',
-            [
-                'id' => 'privacy:metadata:id',
-                'badge_id' => 'privacy:metadata:badge_id',
-                'subject' => 'privacy:metadata:subject',
-                'body' => 'privacy:metadata:body',
-                'link_text' => 'privacy:metadata:link_text',
-                'footer' => 'privacy:metadata:footer',
-            ],
-            'privacy:metadata:email_templates'
-        );
 
         $collection->add_database_table(
             'local_obf_criterion_met',
@@ -127,6 +93,27 @@ class provider implements
         );
 
         $collection->add_database_table(
+            'local_obf_badge_blacklists',
+            [
+                'id' => 'privacy:metadata:id',
+                'user_id' => 'privacy:metadata:user_id',
+                'badge_id' => 'privacy:metadata:badge_id',
+            ],
+            'privacy:metadata:badge_blacklists'
+        );
+
+        $collection->add_database_table(
+            'local_obf_issue_events',
+            [
+                'id' => 'privacy:metadata:id',
+                'user_id' => 'privacy:metadata:user_id',
+                'event_id' => 'privacy:metadata:event_id',
+                'obf_criterion_id' => 'privacy:metadata:obf_criterion_id',
+            ],
+            'privacy:metadata:issue_events'
+        );
+
+        $collection->add_database_table(
             'local_obf_history_emails',
             [
                 'id' => 'privacy:metadata:id',
@@ -158,254 +145,73 @@ class provider implements
     }
 
     /**
-     * Export user data for the specified user.
+     * Export all user data for the specified user in the current plugin.
      *
-     * @param int $userid The ID of the user to export data for.
-     * @return array An associative array containing the user's data.
+     * @param  approved_contextlist  $contextlist The approved contexts to export information for.
      */
-    public static function export_user_data($userid) {
-        $userdata = [];
-
-        // Fetch data from the 'local_obf_criterion_courses' table for the user.
-        $criterionCoursesData = self::get_criterion_courses_data($userid);
-        if (!empty($criterionCoursesData)) {
-            $userdata['criterion_courses'] = $criterionCoursesData;
-        }
-
-        // Fetch data from the 'local_obf_criterion' table for the user.
-        $criterionData = self::get_criterion_data($userid);
-        if (!empty($criterionData)) {
-            $userdata['criterion'] = $criterionData;
-        }
-
-        // Fetch data from the 'local_obf_email_templates' table for the user.
-        $emailTemplatesData = self::get_email_templates_data($userid);
-        if (!empty($emailTemplatesData)) {
-            $userdata['email_templates'] = $emailTemplatesData;
-        }
-
-        // Fetch data from the 'local_obf_criterion_met' table for the user.
-        $criterionMetData = self::get_criterion_met_data($userid);
-        if (!empty($criterionMetData)) {
-            $userdata['criterion_met'] = $criterionMetData;
-        }
-
-        // Fetch data from the 'local_obf_backpack_emails' table for the user.
-        $backpackEmailsData = self::get_backpack_emails_data($userid);
-        if (!empty($backpackEmailsData)) {
-            $userdata['backpack_emails'] = $backpackEmailsData;
-        }
-
-        // Fetch data from the 'local_obf_user_preferences' table for the user.
-        $userPreferencesData = self::get_user_preferences_data($userid);
-        if (!empty($userPreferencesData)) {
-            $userdata['user_preferences'] = $userPreferencesData;
-        }
-
-        // Fetch data from the 'local_obf_user_emails' table for the user.
-        $userEmailsData = self::get_user_emails_data($userid);
-        if (!empty($userEmailsData)) {
-            $userdata['user_emails'] = $userEmailsData;
-        }
-
-        // Fetch data from an external location (if applicable) for the user.
-        $remoteData = self::get_remote_data($userid);
-        if (!empty($remoteData)) {
-            $userdata['remote_data'] = $remoteData;
-        }
-
-        return $userdata;
-    }
-
-    /**
-     * Function to fetch 'local_obf_criterion_courses' data for the specified user.
-     *
-     * @param int $userid The ID of the user to fetch data for.
-     * @return array An array containing the user's 'local_obf_criterion_courses' data.
-     */
-    private static function get_criterion_courses_data($userid) {
+    public static function export_user_data(approved_contextlist $contextlist) {
         global $DB;
 
-        // Define the fields you want to retrieve from the table.
-        $fields = [
-            'id',
-            'obf_criterion_id',
-            'courseid',
-            'grade',
-            'completed_by',
-            'criteria_type',
-        ];
+        if (empty($contextlist)) {
+            return;
+        }
 
-        // Build the SQL query to fetch the data.
-        $sql = "SELECT " . implode(',', $fields) . " FROM {local_obf_criterion_courses} WHERE userid = :userid";
+        $user = $contextlist->get_user();
+        $userid = $user->id;
 
-        // Execute the SQL query with the user ID as a parameter.
-        $params = ['userid' => $userid];
-        $result = $DB->get_records_sql($sql, $params);
+        // Define tables and metadata fields.
+        $tables = array(
+            'local_obf_criterion_met' => array('id', 'obf_criterion_id', 'user_id', 'met_at'),
+            'local_obf_backpack_emails' => array('id', 'user_id', 'email', 'backpack_id', 'badge_groups', 'backpack_provider'),
+            'local_obf_user_emails' => array('id', 'email', 'token', 'verified', 'user_id', 'timestamp'),
+            'local_obf_badge_blacklists' => array('id', 'user_id', 'badge_id'),
+            'local_obf_issue_events' => array('id', 'event_id', 'user_id', 'obf_criterion_id'),
+            'local_obf_history_emails' => array('id', 'user_id', 'email', 'timestamp'),
+        );
 
-        // Return the data as an array.
-        return !empty($result) ? array_values($result) : [];
-    }
+        // Export data for each table.
+        foreach ($tables as $table => $fields) {
+            $sql = "SELECT " . implode(', ', $fields) . " FROM {" . $table . "} WHERE user_id = :userid";
+            $params = array('userid' => $userid);
+            $data = $DB->get_records_sql($sql, $params);
 
-    /**
-     * Function to fetch 'local_obf_criterion' data for the specified user.
-     *
-     * @param int $userid The ID of the user to fetch data for.
-     * @return array An array containing the user's 'local_obf_criterion' data.
-     */
-    private static function get_criterion_data($userid) {
-        global $DB;
-
-        // Define the fields you want to retrieve from the table.
-        $fields = [
-            'id',
-            'badge_id',
-            'client_id',
-            'completion_method',
-            'use_addendum',
-            'addendum',
-        ];
-
-        // Build the SQL query to fetch the data.
-        $sql = "SELECT " . implode(',', $fields) . " FROM {local_obf_criterion} WHERE userid = :userid";
-
-        // Execute the SQL query with the user ID as a parameter.
-        $params = ['userid' => $userid];
-        $result = $DB->get_records_sql($sql, $params);
-
-        // Return the data as an array.
-        return !empty($result) ? array_values($result) : [];
-    }
-
-    /**
-     * Function to fetch 'local_obf_email_templates' data for the specified user.
-     *
-     * @param int $userid The ID of the user to fetch data for.
-     * @return array An array containing the user's 'local_obf_email_templates' data.
-     */
-    private static function get_email_templates_data($userid) {
-        global $DB;
-
-        // Define the fields you want to retrieve from the table.
-        $fields = [
-            'id',
-            'badge_id',
-            'subject',
-            'body',
-            'link_text',
-            'footer',
-        ];
-
-        // Build the SQL query to fetch the data.
-        $sql = "SELECT " . implode(',', $fields) . " FROM {local_obf_email_templates} WHERE userid = :userid";
-
-        // Execute the SQL query with the user ID as a parameter.
-        $params = ['userid' => $userid];
-        $result = $DB->get_records_sql($sql, $params);
-
-        // Return the data as an array.
-        return !empty($result) ? array_values($result) : [];
-    }
-
-    /**
-     * Function to fetch 'local_obf_criterion_met' data for the specified user.
-     *
-     * @param int $userid The ID of the user to fetch data for.
-     * @return array An array containing the user's 'local_obf_criterion_met' data.
-     */
-    private static function get_criterion_met_data($userid) {
-        global $DB;
-
-        // Define the fields you want to retrieve from the table.
-        $fields = [
-            'id',
-            'obf_criterion_id',
-            'user_id',
-            'met_at',
-        ];
-
-        // Build the SQL query to fetch the data.
-        $sql = "SELECT " . implode(',', $fields) . " FROM {local_obf_criterion_met} WHERE user_id = :userid";
-
-        // Execute the SQL query with the user ID as a parameter.
-        $params = ['userid' => $userid];
-        $result = $DB->get_records_sql($sql, $params);
-
-        // Return the data as an array.
-        return !empty($result) ? array_values($result) : [];
-    }
-
-    /**
-     * Function to fetch 'local_obf_backpack_emails' data for the specified user.
-     *
-     * @param int $userid The ID of the user to fetch data for.
-     * @return array An array containing the user's 'local_obf_backpack_emails' data.
-     */
-    private static function get_backpack_emails_data($userid) {
-        global $DB;
-
-        // Define the fields you want to retrieve from the table.
-        $fields = [
-            'id',
-            'user_id',
-            'email',
-            'backpack_id',
-            'badge_groups',
-            'backpack_provider',
-            'backpack_data',
-        ];
-
-        // Build the SQL query to fetch the data.
-        $sql = "SELECT " . implode(',', $fields) . " FROM {local_obf_backpack_emails} WHERE user_id = :userid";
-
-        // Execute the SQL query with the user ID as a parameter.
-        $params = ['userid' => $userid];
-        $result = $DB->get_records_sql($sql, $params);
-
-        // Return the data as an array.
-        return !empty($result) ? array_values($result) : [];
-    }
-
-    /**
-     * Function to fetch remote data.
-     *
-     * @param int $userid The ID of the user to fetch data for.
-     * @return string A text message indicating users to contact https://openbadgefactory.com/ for more details.
-     */
-    private static function get_remote_data($userid) {
-        return get_string('contact_openbadgefactory', 'local_obf');
-    }
-
-    /**
-     * Function to delete 'local_obf' plugin data for a specified user.
-     *
-     * @param approved_contextlist $contextlist The approved contextlist containing the user's data.
-     * @return void
-     */
-    public static function delete_data_for_user(approved_contextlist $contextlist) {
-        global $DB;
-
-        foreach ($contextlist as $context) {
-            $userid = $context->get_user()->id;
-            // Add additional cases for other components or plugins if applicable.
-            if ($context->get_component() == 'local_obf') {
-                if ($context->get_area() === 'criterion_courses') {
-                    // Delete data from 'local_obf_criterion_courses' table for the user.
-                    $DB->delete_records('local_obf_criterion_courses', ['userid' => $userid]);
-                } else if ($context->get_area() === 'criterion') {
-                    // Delete data from 'local_obf_criterion' table for the user.
-                    $DB->delete_records('local_obf_criterion', ['userid' => $userid]);
-                } else if ($context->get_area() === 'email_templates') {
-                    // Delete data from 'local_obf_email_templates' table for the user.
-                    $DB->delete_records('local_obf_email_templates', ['userid' => $userid]);
-                } else if ($context->get_area() === 'criterion_met') {
-                    // Delete data from 'local_obf_criterion_met' table for the user.
-                    $DB->delete_records('local_obf_criterion_met', ['user_id' => $userid]);
-                } else if ($context->get_area() === 'backpack_emails') {
-                    // Delete data from 'local_obf_backpack_emails' table for the user.
-                    $DB->delete_records('local_obf_backpack_emails', ['user_id' => $userid]);
-                }
+            if (!empty($data)) {
+                $context = \context_system::instance();
+                writer::with_context($context)->export_data([$table], (object) $data);
             }
+        }
+
+        $context = \context_system::instance();
+        $externalname = 'local_obf_remote_data';
+        $data = new \stdClass();
+        $data->name = get_string('privacy:metadata:remote_data', 'local_obf');
+        $data->description = get_string('contact_openbadgefactory', 'local_obf');
+        writer::with_context($context)->export_data([$externalname], $data);
+    }
+
+    /**
+     * Store all user preferences for the plugin.
+     *
+     * @param   int         $userid The userid of the user whose data is to be exported.
+     */
+    public static function export_user_preferences(int $userid) {
+        global $DB;
+        $user = \core_user::get_user($userid);
+
+        $badgesonprofile = $DB->get_record('local_obf_user_preferences',
+            ['user_id' => $user->id, 'name' => 'badgesonprofile'], 'value');
+
+        if (null !== $badgesonprofile->value) {
+            switch ($badgesonprofile->value) {
+                case '0':
+                    $badgesonprofiledescri = get_string('badgesonprofiledescri0', 'local_obf');
+                    break;
+                case '1':
+                default:
+                    $badgesonprofiledescri = get_string('badgesonprofiledescri1', 'local_obf');
+                    break;
+            }
+            writer::export_user_preference('local_obf', 'badgesonprofile', $badgesonprofile->value, $badgesonprofiledescri);
         }
     }
 
@@ -421,5 +227,45 @@ class provider implements
         $contextlist->add_user_context($userid);
 
         return $contextlist;
+    }
+
+    /**
+     * Delete all data for all users in the specified context.
+     *
+     * @param context $context The specific context to delete data for.
+     */
+    public static function delete_data_for_all_users_in_context($context) {
+        // We cannot delete the course or system data as it is needed by the system.
+        if ($context->contextlevel != CONTEXT_USER) {
+            return;
+        }
+
+        // Delete all the user data.
+        static::delete_user_data($context->instanceid);
+    }
+
+    /**
+     * Function to delete 'local_obf' plugin data for a specified user.
+     *
+     * @param approved_contextlist $contextlist The approved contextlist containing the user's data.
+     * @return void
+     */
+    public static function delete_data_for_user(approved_contextlist $contextlist) {
+
+        $userid = $contextlist->get_user()->id;
+
+        static::delete_user_data($userid);
+    }
+
+    private static function delete_user_data($userid) {
+        global $DB;
+
+        $DB->delete_records('local_obf_criterion_met', array('user_id' => $userid));
+        $DB->delete_records('local_obf_backpack_emails', array('user_id' => $userid));
+        $DB->delete_records('local_obf_user_preferences', array('user_id' => $userid));
+        $DB->delete_records('local_obf_user_emails', array('user_id' => $userid));
+        $DB->delete_records('local_obf_issue_events', array('user_id' => $userid));
+        $DB->delete_records('local_obf_history_emails', array('user_id' => $userid));
+        $DB->delete_records('local_obf_badge_blacklists', array('user_id' => $userid));
     }
 }

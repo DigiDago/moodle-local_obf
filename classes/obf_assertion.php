@@ -27,6 +27,7 @@ namespace classes;
 use Assertion;
 use cache;
 use context_course;
+use context_coursecat;
 use context_system;
 use core\message\message;
 use stdClass;
@@ -214,10 +215,10 @@ class obf_assertion {
             $messageparams->revokername = fullname($revoker);
             $messageparams->revokedbadgename = $badge->get_name();
 
-            $courseId = optional_param('course_id', 1, PARAM_INT); // Course ID.
+            $courseid = optional_param('course_id', 1, PARAM_INT); // Course ID.
 
-            if (empty($courseId)) {
-                $courseId = $COURSE->id;
+            if (empty($courseid)) {
+                $courseid = $COURSE->id;
             }
 
             $message->component = 'local_obf';
@@ -244,17 +245,22 @@ class obf_assertion {
                 ]) . '<br>';
         }
 
-        $capability = 'local/obf:viewspecialnotif'; // Capability name.
+        // Send notification to teachers.
+        $capability = 'local/obf:viewspecialnotif'; // Capability name
+        if (get_course($courseid)->category) {
+            $contextrole = context_coursecat::instance(get_course($courseid)->category);
+        } else {
+            $contextrole = context_system::instance();
+        }
 
-        // Get the roles matching the capability
-        $roles = get_roles_with_capability($capability, CAP_ALLOW);
+        // Get the roles matching the capability.
+        $roles = get_roles_with_cap_in_context($contextrole, $capability);
 
         // Get the users with the matching roles in the course
-        $roleIds = array_keys($roles);
+        $roleIds = array_keys($roles[0]);
         $managerusers = array();
         foreach ($roleIds as $roleId) {
-            $roleUsers = get_role_users($roleId, context_course::instance($courseId), false, 'u.*');
-
+            $roleUsers = get_role_users($roleId, context_course::instance($courseid), false, 'u.*');
             // Add role users to $managerusers only if they don't already exist
             foreach ($roleUsers as $roleUser) {
                 $userExists = false;
@@ -273,7 +279,7 @@ class obf_assertion {
         }
 
         // If no users found, send the notification to platform admins
-        if (empty($managerusers) && $courseId == 1) {
+        if (empty($managerusers) && $courseid == 1) {
             $managerusers = get_admins();
         }
 
@@ -397,6 +403,11 @@ class obf_assertion {
                     $validRecipients = array();
                     foreach ($recipientEmails as $recipient) {
                         $user = $DB->get_record('user', array('email' => $recipient));
+
+                        if ($assertion->is_revoked_for_email($user->email)) {
+                            continue;
+                        }
+
                         $nameMatch = stripos($item['name'], $searchparams['query']) !== false;
                         $recipientMatch = stripos($recipient, $searchparams['query']) !== false;
                         $fullNameMatch = $user !== false && stripos($user->firstname . ' ' . $user->lastname, $searchparams['query']) !== false;
