@@ -36,7 +36,6 @@ if (!defined('OBF_DEFAULT_ADDRESS')) {
     define('OBF_DEFAULT_ADDRESS', 'https://openbadgefactory.com/');
 }
 
-
 // OBF_API_CONSUMER_ID - The consumer id used in API requests.
 define('OBF_API_CONSUMER_ID', 'Moodle');
 
@@ -232,60 +231,144 @@ function local_obf_add_obf_user_badge_blacklist_link(&$branch) {
  * @param moodle_course $course
  */
 function local_obf_myprofile_navigation(\core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
-    require_once(__DIR__ . '/classes/user_preferences.php');
     global $PAGE, $DB, $CFG;
+
+    require_once(__DIR__ . '/classes/user_preferences.php');
+
     $usersdisplaybadges = get_config('local_obf', 'usersdisplaybadges');
-    $show = obf_client::has_client_id() && (
+    $showBadges = obf_client::has_client_id() && (
             $usersdisplaybadges == obf_user_preferences::USERS_FORCED_TO_DISPLAY_BADGES ||
-            $usersdisplaybadges != obf_user_preferences::USERS_NOT_ALLOWED_TO_DISPLAY_BADGES &&
-            obf_user_preferences::get_user_preference($user->id, 'badgesonprofile') == 1
+            ($usersdisplaybadges != obf_user_preferences::USERS_NOT_ALLOWED_TO_DISPLAY_BADGES &&
+                obf_user_preferences::get_user_preference($user->id, 'badgesonprofile') == 1)
         );
-    if ($show) {
-        $category = new core_user\output\myprofile\category('local_obf/badges', get_string('profilebadgelist', 'local_obf'), null);
-        $tree->add_category($category);
-        $assertions = local_obf_myprofile_get_assertions($user->id, $DB);
-        if ($assertions !== false && count($assertions) > 0) {
-            $title = get_string('profilebadgelist', 'local_obf');
+
+    if ($showBadges) {
+        addUserBadges($tree, $user);
+        addObfBadges($tree, $user);
+        addBackpackBadges($tree, $user);
+        addMoodleBadges($tree, $user);
+    }
+}
+
+/**
+ * Adds OBF badges to the profile tree.
+ *
+ * @param \core_user\output\myprofile\tree $tree
+ * @param stdClass $user
+ */
+function addObfBadges($tree, $user): void {
+    global $PAGE, $DB;
+
+    $category = new core_user\output\myprofile\category('local_obf/badges', get_string('profilebadgelist', 'local_obf'), null);
+    $tree->add_category($category);
+
+    $assertions = local_obf_myprofile_get_assertions($user->id, $DB);
+
+    if ($assertions !== false && count($assertions) > 0) {
+        $renderer = $PAGE->get_renderer('local_obf');
+        $content = $renderer->render_user_assertions($assertions, $user, false);
+        $localnode = new core_user\output\myprofile\node('local_obf/badges', 'obfbadges',
+            '', null, null, $content, null, 'local-obf');
+        $tree->add_node($localnode);
+    }
+}
+
+/**
+ * Adds backpack badges to the profile tree.
+ *
+ * @param \core_user\output\myprofile\tree $tree
+ * @param stdClass $user
+ */
+function addBackpackBadges($tree, $user): void {
+    global $PAGE, $DB;
+
+    foreach (obf_backpack::get_providers() as $provider) {
+        $bpassertions = local_obf_myprofile_get_backpack_badges($user->id, $provider, $DB);
+
+        if ($bpassertions !== false && count($bpassertions) > 0) {
+            $name = obf_backpack::get_providershortname_by_providerid($provider);
+            $fullname = obf_backpack::get_providerfullname_by_providerid($provider);
+            $title = get_string('profilebadgelistbackpackprovider', 'local_obf', $fullname);
             $renderer = $PAGE->get_renderer('local_obf');
-            $content = $renderer->render_user_assertions($assertions, $user, false);
-            $localnode = $mybadges = new core_user\output\myprofile\node('local_obf/badges', 'obfbadges',
-                '', null, null, $content, null, 'local-obf');
+            $content = $renderer->render_user_assertions($bpassertions, $user, false);
+            $localnode = new core_user\output\myprofile\node('local_obf/badges', 'obfbadges' . $name,
+                $title, null, null, $content, null, 'local-obf');
             $tree->add_node($localnode);
         }
+    }
+}
 
-        foreach (obf_backpack::get_providers() as $provider) {
-            $bpassertions = local_obf_myprofile_get_backpack_badges($user->id, $provider, $DB);
-            if ($assertions !== false && count($bpassertions) > 0) {
-                $name = obf_backpack::get_providershortname_by_providerid($provider);
-                $fullname = obf_backpack::get_providerfullname_by_providerid($provider);
-                $title = get_string('profilebadgelistbackpackprovider', 'local_obf', $fullname);
-                $renderer = $PAGE->get_renderer('local_obf');
-                $content = $renderer->render_user_assertions($bpassertions, $user, false);
-                $localnode = $mybadges = new core_user\output\myprofile\node('local_obf/badges', 'obfbadges' . $name,
-                    $title, null, null, $content, null, 'local-obf');
-                $tree->add_node($localnode);
-            }
+/**
+ * Adds Moodle badges to the profile tree.
+ *
+ * @param \core_user\output\myprofile\tree $tree
+ * @param stdClass $user
+ */
+function addMoodleBadges($tree, $user): void {
+    global $PAGE, $DB, $CFG;
+
+    $badgeslibfile = $CFG->libdir . '/badgeslib.php';
+
+    if (file_exists($badgeslibfile) && true !== get_config('enablebadges') && get_config('local_obf', 'displaymoodlebadges')) {
+        $moodleassertions = new obf_assertion_collection();
+        require_once($badgeslibfile);
+        $moodleassertions->add_collection(obf_assertion::get_user_moodle_badge_assertions($user->id));
+
+        if (count($moodleassertions) > 0) {
+            $renderer = $PAGE->get_renderer('local_obf');
+            $site = get_site();
+            $sitename = $site ? format_string($site->fullname) : 'Moodle';
+            $title = get_string('profilebadgelistbackpackprovider', 'local_obf', $sitename);
+            $content = $renderer->render_user_assertions($moodleassertions, $user, false);
+            $localnode = new core_user\output\myprofile\node('local_obf/badges', 'obfbadgesmoodle',
+                $title, null, null, $content, null, 'local-obf');
+            $tree->add_node($localnode);
         }
-        $badgeslibfile = $CFG->libdir . '/badgeslib.php';
+    }
+}
 
-        if (file_exists($badgeslibfile) && true !== get_config('enablebadges') && get_config('local_obf', 'displaymoodlebadges')) {
-            $moodleassertions = new obf_assertion_collection();
-            require_once($badgeslibfile);
-            $moodleassertions->add_collection(obf_assertion::get_user_moodle_badge_assertions($user->id));
+/**
+ * Adds user badges to the profile tree.
+ *
+ * @param \core_user\output\myprofile\tree $tree
+ * @param stdClass $user
+ */
+function addUserBadges($tree, $user): void {
+    global $PAGE, $DB;
 
-            if (count($moodleassertions) > 0) {
-                $renderer = $PAGE->get_renderer('local_obf');
-                $site = get_site();
-                $sitename = $site ? format_string($site->fullname) : 'Moodle';
-                $title = get_string('profilebadgelistbackpackprovider', 'local_obf', $sitename);
-                $content = $renderer->render_user_assertions($moodleassertions, $user, false);
-                $localnode = $mybadges = new core_user\output\myprofile\node('local_obf/badges', 'obfbadgesmoodle',
-                    $title, null, null, $content, null, 'local-obf');
-                $tree->add_node($localnode);
+    $clientid = obf_client::get_instance()->client_id();
+
+    if (!empty($clientid)) {
+        // Get user's badges in OBF.
+        $assertions = new obf_assertion_collection();
+
+        try {
+            $client = obf_client::get_instance();
+            $blacklist = new obf_blacklist($user->id);
+
+            // Get badges issued with previous emails
+            $historyemails = $DB->get_records('local_obf_history_emails', array('user_id' => $user->id), '', 'email');
+
+            foreach ($historyemails as $email) {
+                $assertions->add_collection(obf_assertion::get_assertions_all($client, $email->email));
             }
 
+            $assertions->add_collection(obf_assertion::get_assertions_all($client,
+                $DB->get_field('user', 'email', array('id' => $user->id))));
+
+            $assertions->apply_blacklist($blacklist);
+
+        } catch (Exception $e) {
+            debugging('Getting OBF assertions for user id: ' . $user->id . ' failed: ' . $e->getMessage());
         }
 
+        $renderer = $PAGE->get_renderer('local_obf');
+        $category = new core_user\output\myprofile\category('local_obf/badgesplatform', get_string('badgesplatform', 'local_obf'), null);
+        $tree->add_category($category);
+        $content = $renderer->render_user_assertions($assertions, $user, false);
+        $localnode = new core_user\output\myprofile\node('local_obf/badgesplatform', 'obfbadges',
+            '', null, null, $content, null, 'local-obf');
+        $tree->add_node($localnode);
     }
 }
 
@@ -307,17 +390,17 @@ function local_obf_myprofile_get_assertions($userid, $db) {
         try {
             $client = obf_client::get_instance();
             $blacklist = new obf_blacklist($userid);
-            $deletedemailscount = $db->count_records('local_obf_history_emails', array('user_id' => $userid));
-            $deletedemails = $db->get_records('local_obf_history_emails', array('user_id' => $userid), '', 'email');
+            $historyemailscount = $db->count_records('local_obf_history_emails', array('user_id' => $userid));
+            $historyemails = $db->get_records('local_obf_history_emails', array('user_id' => $userid), '', 'email');
             $deleted = array();
-            foreach ($deletedemails as $key => $email) {
+            foreach ($historyemails as $key => $email) {
                 $deleted[] = $key;
             }
             $assertions->add_collection(obf_assertion::get_assertions($client,
                 null, $db->get_record('user', array('id' => $userid))->email, -1, true));
 
             // Get badges issued with previous emails.
-            if ($deletedemailscount >= 1) {
+            if ($historyemailscount >= 1) {
                 foreach ($deleted as $email) {
                     $assertions->add_collection(obf_assertion::get_assertions($client, null,
                         $db->get_record('local_obf_history_emails',
@@ -438,9 +521,9 @@ if (!function_exists('users_order_by_sql')) {
 /**
  * Creates a new rule object with the provided parameters.
  *
- * @param int    $ruleid            The rule ID.
- * @param string $oauth2Id          The OAuth2 ID.
- * @param int    $coursecategorieid The course category ID.
+ * @param int $ruleid The rule ID.
+ * @param string $oauth2Id The OAuth2 ID.
+ * @param int $coursecategorieid The course category ID.
  * @param string $badgecategoriename The badge category name.
  *
  * @return stdClass The newly created rule object.
