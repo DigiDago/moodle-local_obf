@@ -432,6 +432,8 @@ $string['contact_openbadgefactory'] = 'Please contact https://openbadgefactory.c
 
 $string['badgesonprofiledescri0'] = 'Do not display badge on profil';
 $string['badgesonprofiledescri1'] = 'Display badge on profil';
+$string['badgesplatform'] = 'Plateform badge';
+$string['showmore'] = 'Show more';
 
 $string['congratsbadgeearned'] = 'Congrats! You earned a new badge: {$a}';
 $string['newbadgeearned'] = '<b>{$a->courselink}</b><br><hr><br>You earned a new badge: <b>{$a->badgelink}</b><br><br>Please check your email for more information';

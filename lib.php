@@ -232,6 +232,8 @@ function local_obf_add_obf_user_badge_blacklist_link(&$branch) {
  */
 function local_obf_myprofile_navigation(\core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
     global $PAGE, $DB, $CFG;
+    // Load the separate JavaScript file and call the event handler.
+    $PAGE->requires->js_call_amd('local_obf/obf_badgelist', 'init');
 
     require_once(__DIR__ . '/classes/user_preferences.php');
 
@@ -366,6 +368,7 @@ function addUserBadges($tree, $user): void {
         $category = new core_user\output\myprofile\category('local_obf/badgesplatform', get_string('badgesplatform', 'local_obf'), null);
         $tree->add_category($category);
         $content = $renderer->render_user_assertions($assertions, $user, false);
+        $content .= html_writer::tag('button', get_string('showmore', 'local_obf'), ['class' => 'btn btn-primary show-more-button']);
         $localnode = new core_user\output\myprofile\node('local_obf/badgesplatform', 'obfbadges',
             '', null, null, $content, null, 'local-obf');
         $tree->add_node($localnode);

@@ -1368,3 +1368,7 @@ ul.obf-categories li button.active {
 #fgroup_id_buttonarrule .col-form-label {
     flex: 0;
 }
+
+.show-more-button {
+    display: none;
+}
