@@ -67,8 +67,7 @@ switch ($action) {
             // Deauthentication.
             if (isset($data->deauthenticate) && $data->deauthenticate == 1) {
                 $client->deauthenticate();
-                redirect(new moodle_url('/local/obf/config.php'),
-                    get_string('deauthenticationsuccess', 'local_obf'));
+                redirect(new moodle_url('/local/obf/config.php'), get_string('deauthenticationsuccess', 'local_obf'));
             } else if (!empty($data->obftoken) && !empty($data->url)) {
                 // OBF request token is set, (re)do authentication.
                 try {
@@ -89,19 +88,16 @@ switch ($action) {
                     if ($badgesupport) {
                         require_once($CFG->libdir . '/badgeslib.php');
 
-                        $badges = array_merge(badges_get_badges(BADGE_TYPE_COURSE),
-                            badges_get_badges(BADGE_TYPE_SITE));
+                        $badges = array_merge(badges_get_badges(BADGE_TYPE_COURSE), badges_get_badges(BADGE_TYPE_SITE));
 
                         // Redirect to page where the user can export existing
                         // badges to OBF and change some settings.
-                        redirect(new moodle_url('/local/obf/config.php',
-                            array('action' => 'exportbadges')));
+                        redirect(new moodle_url('/local/obf/config.php', array('action' => 'exportbadges')));
                     }
 
                     // No local badges, no need to export.
                     redirect(new moodle_url('/local/obf/config.php',
-                        array('msg' => get_string('authenticationsuccess',
-                            'local_obf'))));
+                        array('msg' => get_string('authenticationsuccess', 'local_obf'))));
                 } catch (Exception $e) {
                     $content .= $OUTPUT->notification($e->getMessage());
                 }
@@ -124,9 +120,7 @@ switch ($action) {
                 set_config('coursereset', $data->coursereset, 'local_obf');
                 set_config('usersdisplaybadges', $data->usersdisplaybadges, 'local_obf');
                 set_config('apidataretrieve', $data->apidataretrieve, 'local_obf');
-                redirect(new moodle_url('/local/obf/config.php',
-                    array('msg' => get_string('settingssaved',
-                        'local_obf'))));
+                redirect(new moodle_url('/local/obf/config.php', array('msg' => get_string('settingssaved', 'local_obf'))));
             }
             $content .= $PAGE->get_renderer('local_obf')->render($settingsform);
         }
@@ -138,16 +132,14 @@ switch ($action) {
 
         require_once($CFG->libdir . '/badgeslib.php');
 
-        $badges = array_merge(badges_get_badges(BADGE_TYPE_COURSE),
-            badges_get_badges(BADGE_TYPE_SITE));
+        $badges = array_merge(badges_get_badges(BADGE_TYPE_COURSE), badges_get_badges(BADGE_TYPE_SITE));
         try {
             $obfbadges = obf_badge::get_badges();
         } catch (Exception $e) {
             $content .= $OUTPUT->notification($e->getMessage(), 'notifyproblem');
             break;
         }
-        $exportform = new obf_badge_export_form($FULLME,
-            array('badges' => $badges, 'obfbadges' => $obfbadges));
+        $exportform = new obf_badge_export_form($FULLME, array('badges' => $badges, 'obfbadges' => $obfbadges));
 
         if (!is_null($data = $exportform->get_data())) {
             // At least one badge has been selected to be included in exporting.
@@ -166,41 +158,22 @@ switch ($action) {
 
                         $storage = get_file_storage();
 
-                        $imagefile = $storage->get_file(
-                            $context->id,
-                            'badges',
-                            'badgeimage',
-                            $badge->id,
-                            '/',
-                            'f1.png');
+                        $imagefile = $storage->get_file($context->id, 'badges', 'badgeimage', $badge->id, '/', 'f1.png');
 
-                        if(!$imagefile) {
+                        if (!$imagefile) {
                             $context = context_course::instance($badge->courseid);
-                            $imagefile = $storage->get_file(
-                                $context->id,
-                                'badges',
-                                'badgeimage',
-                                $badge->id,
-                                '/',
-                                'f1.png');
+                            $imagefile = $storage->get_file($context->id, 'badges', 'badgeimage', $badge->id, '/', 'f1.png');
 
                             if (!$imagefile) {
                                 throw new moodle_exception(get_string('image_not_found', 'mod_yourplugin'));
                             }
                         }
 
-                        $obfbadge = obf_badge::get_instance_from_array(array(
-                            'name' => $badge->name,
-                            'criteria_html' => '',
-                            'css' => '',
-                            'expires' => null,
-                            'id' => null,
-                            'tags' => array(),
-                            'ctime' => null,
-                            'description' => $badge->description,
-                            'image' => base64_encode($imagefile->get_content()),
-                            'draft' => $data->makedrafts
-                        ));
+                        $obfbadge =
+                            obf_badge::get_instance_from_array(array('name' => $badge->name, 'criteria_html' => '', 'css' => '',
+                                'expires' => null, 'id' => null, 'tags' => array(), 'ctime' => null,
+                                'description' => $badge->description, 'image' => base64_encode($imagefile->get_content()),
+                                'draft' => $data->makedrafts));
                         $obfbadge->set_email($email);
                         $success = $obfbadge->export($client);
 

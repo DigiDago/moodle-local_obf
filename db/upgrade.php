@@ -793,68 +793,68 @@ function xmldb_local_obf_upgrade($oldversion) {
     }
 
     if ($oldversion < 2023041802) {
-        // Check if table local_obf_rulescateg exists
+        // Check if table local_obf_rulescateg exists.
         if (!$dbman->table_exists('local_obf_rulescateg')) {
-            // Define table local_obf_rulescateg
+            // Define table local_obf_rulescateg.
             $table = new xmldb_table('local_obf_rulescateg');
 
-            // Adding fields to the table
-            $field_id = new xmldb_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE);
-            $field_ruleid = new xmldb_field('ruleid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL);
-            $field_badgecategoriename = new xmldb_field('badgecategoriename', XMLDB_TYPE_CHAR, '255', null, null, null, null, null);
-            $field_coursecategorieid = new xmldb_field('coursecategorieid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null);
-            $field_oauth2_id = new xmldb_field('oauth2_id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL);
+            // Adding fields to the table.
+            $fieldid = new xmldb_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE);
+            $fieldruleid = new xmldb_field('ruleid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL);
+            $fieldbadgecategoriename = new xmldb_field('badgecategoriename', XMLDB_TYPE_CHAR, '255', null, null, null, null, null);
+            $fieldcoursecategorieid = new xmldb_field('coursecategorieid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null);
+            $fieldoauth2id = new xmldb_field('oauth2_id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL);
 
-            // Adding fields to the table structure
-            $dbman->add_field($table, $field_id);
-            $dbman->add_field($table, $field_ruleid);
-            $dbman->add_field($table, $field_badgecategoriename);
-            $dbman->add_field($table, $field_coursecategorieid);
-            $dbman->add_field($table, $field_oauth2_id);
+            // Adding fields to the table structure.
+            $dbman->add_field($table, $fieldid);
+            $dbman->add_field($table, $fieldruleid);
+            $dbman->add_field($table, $fieldbadgecategoriename);
+            $dbman->add_field($table, $fieldcoursecategorieid);
+            $dbman->add_field($table, $fieldoauth2id);
 
-            // Adding keys to the table
-            $key_primary = new xmldb_key('primary');
-            $key_fk_oauth2_id = new xmldb_key('fk_oauth2_id');
+            // Adding keys to the table.
+            $keyprimary = new xmldb_key('primary');
+            $keyfkoauth2id = new xmldb_key('fk_oauth2_id');
 
-            // Adding fields to the keys
-            $key_primary->set_attributes(XMLDB_KEY_PRIMARY, array('id'));
-            $key_fk_oauth2_id->set_attributes(XMLDB_KEY_FOREIGN, array('oauth2_id'), 'local_obf_oauth2', array('id'));
+            // Adding fields to the keys.
+            $keyprimary->set_attributes(XMLDB_KEY_PRIMARY, array('id'));
+            $keyfkoauth2id->set_attributes(XMLDB_KEY_FOREIGN, array('oauth2_id'), 'local_obf_oauth2', array('id'));
 
-            // Adding keys to the table structure
-            $dbman->add_key($table, $key_primary);
-            $dbman->add_key($table, $key_fk_oauth2_id);
+            // Adding keys to the table structure.
+            $dbman->add_key($table, $keyprimary);
+            $dbman->add_key($table, $keyfkoauth2id);
 
-            // Create the table
+            // Create the table.
             $dbman->create_table($table);
         }
 
-        // Upgrade version
+        // Upgrade version.
         upgrade_plugin_savepoint(true, 2023041802, 'local', 'obf_rulescateg');
     }
 
     if ($oldversion < 2023041808) {
-        // Vérifier si les valeurs sont déjà définies
-        $emailProviderValue = get_config('local_obf', 'email_provider_local_obf_revoked_locked');
-        $messageProviderValue = get_config('local_obf', 'message_provider_local_obf_revoked_enabled');
+        // Check if values exists.
+        $emailprovidervalue = get_config('local_obf', 'email_provider_local_obf_revoked_locked');
+        $messageprovidervalue = get_config('local_obf', 'message_provider_local_obf_revoked_enabled');
 
-        // Vérifier si les valeurs sont différentes des nouvelles valeurs
-        if ($emailProviderValue !== '1') {
-            // Mise à jour de la valeur 'email_provider_local_obf_revoked_locked'
+        // Check if value are differents.
+        if ($emailprovidervalue !== '1') {
+            // Update value 'email_provider_local_obf_revoked_locked'.
             $DB->execute(
                 "UPDATE {config_plugins} SET value = :value WHERE name = 'email_provider_local_obf_revoked_locked'",
                 array('value' => 1)
             );
         }
 
-        if ($messageProviderValue !== 'popup') {
-            // Mise à jour de la valeur 'message_provider_local_obf_revoked_enabled'
+        if ($messageprovidervalue !== 'popup') {
+            // Update value 'message_provider_local_obf_revoked_enabled'.
             $DB->execute(
                 "UPDATE {config_plugins} SET value = :value WHERE name = 'message_provider_local_obf_revoked_enabled'",
                 array('value' => 'popup')
             );
         }
 
-        // Mettre à jour la version
+        // Update version.
         upgrade_plugin_savepoint(true, 2023041808, 'local', 'obf');
     }
 

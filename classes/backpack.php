@@ -38,7 +38,7 @@ use Provider;
 use stdClass;
 use Transport;
 use type;
-use Userid;
+use userid;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -80,7 +80,7 @@ class obf_backpack {
      */
     private $id = -1;
     /**
-     * @var Userid.
+     * @var userid.
      */
     private $userid = -1;
     /**
@@ -352,7 +352,7 @@ class obf_backpack {
         $code = $curl->info['http_code'];
 
         if ($code == 200) {
-            return $json->userId;
+            return $json->userid;
         }
 
         return false;

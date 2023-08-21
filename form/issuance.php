@@ -217,7 +217,7 @@ class MoodleQuickForm_userselector extends HTML_QuickForm_element {
      *
      * @var string
      */
-    protected $strHtml;
+    protected $strhtml;
     /**
      * Name.
      *
@@ -269,8 +269,8 @@ class MoodleQuickForm_userselector extends HTML_QuickForm_element {
      * @return string HTML
      */
     public function toHtml() {
-        $this->strHtml = $this->userselector->display(true);
-        return $this->strHtml;
+        $this->strhtml = $this->userselector->display(true);
+        return $this->strhtml;
     }
 
     /**

@@ -53,11 +53,11 @@ class obf_config_oauth2_form extends moodleform {
 
         $mform = $this->_form;
 
-        // Add header for the client block
+        // Add header for the client block.
         $mform->addElement('header', 'obfeditclientheader', get_string('client', 'local_obf'));
 
         if ($this->isadding) {
-            // Add fields for adding a new client
+            // Add fields for adding a new client.
             $mform->addElement('text', 'obf_url', get_string('obfurl', 'local_obf'), array('size' => 60));
             $mform->setType('obf_url', PARAM_URL);
             $mform->addRule('obf_url', null, 'required');
@@ -73,7 +73,7 @@ class obf_config_oauth2_form extends moodleform {
             $mform->addRule('client_secret', null, 'required');
             $mform->addHelpButton('client_secret', 'clientsecret', 'local_obf');
         } else {
-            // Add static fields for editing an existing client
+            // Add static fields for editing an existing client.
             $mform->addElement('text', 'client_name', get_string('clientname', 'local_obf'), array('size' => 60));
             $mform->setType('client_name', PARAM_NOTAGS);
             $mform->addRule('client_name', null, 'required');
@@ -85,7 +85,7 @@ class obf_config_oauth2_form extends moodleform {
 
         $canissue = $this->roles_available();
         if (!empty($canissue)) {
-            // Add header for issuer roles
+            // Add header for issuer roles.
             $mform->addElement('header', 'obfeditclientheader', get_string('issuerroles', 'local_obf'));
 
             $mform->addElement('static', 'role_help', '', get_string('issuerroles_help', 'local_obf'));
@@ -133,7 +133,7 @@ class obf_config_oauth2_form extends moodleform {
         $rules = $DB->get_records_sql('SELECT ruleid FROM {local_obf_rulescateg} WHERE oauth2_id = ? GROUP BY ruleid',
             ['oauth2_id' => optional_param('id', null, PARAM_INT)]);
 
-        // Vérifier si $rules est null ou vide.
+        // Check if $rules is null or empty.
         if (!empty($rules)) {
             $rulecount = 1;
 
@@ -144,7 +144,7 @@ class obf_config_oauth2_form extends moodleform {
 
             $numberofrule = 0;
             foreach ($rules as $rule) {
-                // Créer un nouveau bloc 'chooseurmoodlecategories' pour chaque règle.
+                // Create a 'chooseurmoodlecategories' for every rules.
                 $ruledatas = $DB->get_records('local_obf_rulescateg',
                     ['ruleid' => $rule->ruleid, 'oauth2_id' => optional_param('id', null, PARAM_INT)]);
 
@@ -162,9 +162,9 @@ class obf_config_oauth2_form extends moodleform {
                     }
                 }
 
-                $headerName = 'chooseurmoodlecategories_' . $rule->ruleid;
-                $mform->addElement('header', $headerName, get_string('rules', 'local_obf') . " $rulecount");
-                $mform->setExpanded($headerName);
+                $headername = 'chooseurmoodlecategories_' . $rule->ruleid;
+                $mform->addElement('header', $headername, get_string('rules', 'local_obf') . " $rulecount");
+                $mform->setExpanded($headername);
 
                 // Add autocomplete field for Moodle course categories.
                 $mform->addElement('autocomplete', 'coursecategorieid_' . $rule->ruleid,
@@ -179,11 +179,11 @@ class obf_config_oauth2_form extends moodleform {
                 $mform->setDefaults(['badgecategoriename_' . $rule->ruleid => $badgedefaultcateg]);
 
                 // Create the delete button element.
-                $deleteButton = $mform->addElement('button', 'delete_rule_button',
+                $deletebutton = $mform->addElement('button', 'delete_rule_button',
                     get_string('delete_rule', 'local_obf'));
 
                 // Set the label for the delete button.
-                $deleteButton->setAttributes([
+                $deletebutton->setAttributes([
                     'value' => get_string('delete_rule_button', 'local_obf'),
                     'class' => 'delete-button',
                     'ruleid' => $rule->ruleid

@@ -45,13 +45,9 @@ $history = obf_assertion::get_assertions($client, null, null, -1, false, $search
 $filename = 'badge_history.csv';
 
 // CSV headers.
-$headers = array(
-    get_string('exportbadgename','local_obf'),
-    get_string('exportrecipients','local_obf'),
-    get_string('exportissuedon','local_obf'),
-    get_string('exportexpiresby','local_obf'),
-    get_string('exportissuedfrom','local_obf')
-);
+$headers = array(get_string('exportbadgename', 'local_obf'), get_string('exportrecipients', 'local_obf'),
+    get_string('exportissuedon', 'local_obf'), get_string('exportexpiresby', 'local_obf'),
+    get_string('exportissuedfrom', 'local_obf'));
 
 // Initialize CSV file.
 $csvfile = new \csv_export_writer();
@@ -84,13 +80,8 @@ foreach ($history as $assertion) {
     }
 
     if ((isset($courseid) && $courseid == $logs) || empty($courseid)) {
-        $rowdata = array(
-            $assertion->get_badge()->get_name(),
-            implode(', ', $recipients),
-            userdate($assertion->get_issuedon(), get_string('dateformatdate', 'local_obf')),
-            $assertion->get_expires(),
-            $courses
-        );
+        $rowdata = array($assertion->get_badge()->get_name(), implode(', ', $recipients),
+            userdate($assertion->get_issuedon(), get_string('dateformatdate', 'local_obf')), $assertion->get_expires(), $courses);
 
         // Add a record to the CSV file.
         $csvfile->add_data($rowdata);

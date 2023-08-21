@@ -145,24 +145,24 @@ class obf_assertion_collection implements Countable, IteratorAggregate {
     public function get_assertion_users(obf_assertion $assertion) {
         global $DB;
 
-        // Check if $this->users is empty
+        // Check if $this->users is empty.
         if (empty($this->users)) {
             $emails = array();
 
-            // Collect all recipients' emails from assertions
+            // Collect all recipients' emails from assertions.
             foreach ($this->assertions as $a) {
                 $emails = array_merge($emails, $a->get_recipients());
             }
 
-            // Get user records based on email
+            // Get user records based on email.
             $this->users = $DB->get_records_list('user', 'email', $emails);
         }
 
         $result = array();
 
-        // Loop through the recipients of the assertion
+        // Loop through the recipients of the assertion.
         foreach ($assertion->get_recipients() as $recipient) {
-            // Try to find the user by email
+            // Try to find the user by email.
             $user = $this->find_user_by_email($recipient);
 
             if ($assertion->is_revoked_for_email($user->email)) {
@@ -172,7 +172,7 @@ class obf_assertion_collection implements Countable, IteratorAggregate {
             if ($user !== false) {
                 $result[] = $user;
             } else {
-                // If not found, try to find the user by backpack email
+                // If not found, try to find the user by backpack email.
                 $backpack = obf_backpack::get_instance_by_backpack_email($recipient);
 
                 if ($backpack === false) {

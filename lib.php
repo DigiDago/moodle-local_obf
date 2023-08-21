@@ -238,17 +238,17 @@ function local_obf_myprofile_navigation(\core_user\output\myprofile\tree $tree, 
     require_once(__DIR__ . '/classes/user_preferences.php');
 
     $usersdisplaybadges = get_config('local_obf', 'usersdisplaybadges');
-    $showBadges = obf_client::has_client_id() && (
+    $showbadges = obf_client::has_client_id() && (
             $usersdisplaybadges == obf_user_preferences::USERS_FORCED_TO_DISPLAY_BADGES ||
             ($usersdisplaybadges != obf_user_preferences::USERS_NOT_ALLOWED_TO_DISPLAY_BADGES &&
                 obf_user_preferences::get_user_preference($user->id, 'badgesonprofile') == 1)
         );
 
-    if ($showBadges) {
-        addUserBadges($tree, $user);
-        addObfBadges($tree, $user);
-        addBackpackBadges($tree, $user);
-        addMoodleBadges($tree, $user);
+    if ($showbadges) {
+        adduserbadges($tree, $user);
+        addobfbadges($tree, $user);
+        addbackpackbadges($tree, $user);
+        addmoodlebadges($tree, $user);
     }
 }
 
@@ -258,7 +258,7 @@ function local_obf_myprofile_navigation(\core_user\output\myprofile\tree $tree, 
  * @param \core_user\output\myprofile\tree $tree
  * @param stdClass $user
  */
-function addObfBadges($tree, $user): void {
+function addobfbadges($tree, $user): void {
     global $PAGE, $DB;
 
     $category = new core_user\output\myprofile\category('local_obf/badges', get_string('profilebadgelist', 'local_obf'), null);
@@ -281,7 +281,7 @@ function addObfBadges($tree, $user): void {
  * @param \core_user\output\myprofile\tree $tree
  * @param stdClass $user
  */
-function addBackpackBadges($tree, $user): void {
+function addbackpackbadges($tree, $user): void {
     global $PAGE, $DB;
 
     foreach (obf_backpack::get_providers() as $provider) {
@@ -306,7 +306,7 @@ function addBackpackBadges($tree, $user): void {
  * @param \core_user\output\myprofile\tree $tree
  * @param stdClass $user
  */
-function addMoodleBadges($tree, $user): void {
+function addmoodlebadges($tree, $user): void {
     global $PAGE, $DB, $CFG;
 
     $badgeslibfile = $CFG->libdir . '/badgeslib.php';
@@ -335,7 +335,7 @@ function addMoodleBadges($tree, $user): void {
  * @param \core_user\output\myprofile\tree $tree
  * @param stdClass $user
  */
-function addUserBadges($tree, $user): void {
+function adduserbadges($tree, $user): void {
     global $PAGE, $DB;
 
     $clientid = obf_client::get_instance()->client_id();
@@ -348,7 +348,7 @@ function addUserBadges($tree, $user): void {
             $client = obf_client::get_instance();
             $blacklist = new obf_blacklist($user->id);
 
-            // Get badges issued with previous emails
+            // Get badges issued with previous emails.
             $historyemails = $DB->get_records('local_obf_history_emails', array('user_id' => $user->id), '', 'email');
 
             foreach ($historyemails as $email) {
@@ -525,20 +525,20 @@ if (!function_exists('users_order_by_sql')) {
  * Creates a new rule object with the provided parameters.
  *
  * @param int $ruleid The rule ID.
- * @param string $oauth2Id The OAuth2 ID.
+ * @param string $oauth2id The OAuth2 ID.
  * @param int $coursecategorieid The course category ID.
  * @param string $badgecategoriename The badge category name.
  *
  * @return stdClass The newly created rule object.
  */
-function createNewRule($ruleid, $oauth2Id, $coursecategorieid, $badgecategoriename): stdClass {
-    $newRule = new stdClass();
-    $newRule->id = null;
-    $newRule->ruleid = $ruleid;
-    $newRule->oauth2_id = $oauth2Id;
-    $newRule->coursecategorieid = $coursecategorieid;
-    $newRule->badgecategoriename = $badgecategoriename;
+function createnewrule($ruleid, $oauth2id, $coursecategorieid, $badgecategoriename): stdClass {
+    $newrule = new stdClass();
+    $newrule->id = null;
+    $newrule->ruleid = $ruleid;
+    $newrule->oauth2_id = $oauth2id;
+    $newrule->coursecategorieid = $coursecategorieid;
+    $newrule->badgecategoriename = $badgecategoriename;
 
-    return $newRule;
+    return $newrule;
 }
 

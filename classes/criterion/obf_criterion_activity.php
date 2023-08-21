@@ -197,7 +197,7 @@ class obf_criterion_activity extends obf_criterion_course {
             }
 
             $imageicon = html_writer::empty_tag('img',
-                ['src' =>  get_fast_modinfo($courseid)->get_cms()[$cmrecord->id]->get_icon_url(),
+                ['src' => get_fast_modinfo($courseid)->get_cms()[$cmrecord->id]->get_icon_url(),
                 'class' => 'activityicon', 'alt' => '', 'role' => 'presentation', 'aria-hidden' => 'true']);
 
             $activities[$cmrecord->id]['name'] =
@@ -389,31 +389,31 @@ class obf_criterion_activity extends obf_criterion_course {
             }
         }
 
-        $groupedModules = array();
+        $groupedmodules = array();
         foreach ($modules as $key => $mod) {
-            $sectionId = $mod['sectionid'];
+            $sectionid = $mod['sectionid'];
             $sectionname = $mod['sectionname'];
-            $moduleName = $mod['name'];
+            $modulename = $mod['name'];
 
-            if (!isset($groupedModules[$sectionId])) {
-                $groupedModules[$sectionId] = array(
-                    'header' => 'section_' . $sectionId,
+            if (!isset($groupedmodules[$sectionid])) {
+                $groupedmodules[$sectionid] = array(
+                    'header' => 'section_' . $sectionid,
                     'sectionname' => $sectionname,
                     'modules' => array(),
                 );
             }
 
-            $groupedModules[$sectionId]['modules'][$key] = $moduleName;
+            $groupedmodules[$sectionid]['modules'][$key] = $modulename;
         }
 
-        foreach ($groupedModules as $sectionId => $groupData) {
+        foreach ($groupedmodules as $sectionid => $groupdata) {
             $mform->addElement('html',
-                html_writer::tag('div', $groupData['sectionname'], array('class' => 'col-md-9 offset-md-3 section-text'))
+                html_writer::tag('div', $groupdata['sectionname'], array('class' => 'col-md-9 offset-md-3 section-text'))
             );
 
-            foreach ($groupData['modules'] as $moduleId => $moduleName) {
-                $mform->addElement('advcheckbox', 'module_' . $moduleId,
-                    $moduleName, null, array('group' => $sectionId), array(0, $moduleId));
+            foreach ($groupdata['modules'] as $moduleid => $modulename) {
+                $mform->addElement('advcheckbox', 'module_' . $moduleid,
+                    $modulename, null, array('group' => $sectionid), array(0, $moduleid));
             }
         }
 

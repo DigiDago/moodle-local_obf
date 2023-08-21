@@ -90,10 +90,10 @@ switch ($action) {
             // User configuration was saved.
             $obfuserpreferences->save_preferences($data);
 
-            $userID = $USER->id; // ID de l'utilisateur.
-            $preferenceName = 'local_obf_userprefsaved'; // Nom de la préférence.
+            $userid = $USER->id; // User id.
+            $preferencename = 'local_obf_userprefsaved'; // Pref name.
 
-            set_user_preference($preferenceName, true, $userID);
+            set_user_preference($preferencename, true, $userid);
 
             $redirecturl = new moodle_url('/local/obf/userconfig.php', array('action' => 'edit'));
             // If were saving backpack data, we can safely assume that the backpack exists, because it.

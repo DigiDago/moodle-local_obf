@@ -168,8 +168,8 @@ class obf_assertion {
      */
     public function process() {
         try {
-            $eventid = $this->badge->issue($this->recipients, $this->issuedon,
-                $this->get_email_template(), $this->get_criteria_addendum());
+            $eventid = $this->badge->issue($this->recipients, $this->issuedon, $this->get_email_template(),
+                $this->get_criteria_addendum());
             return $eventid;
         } catch (Exception $e) {
             $this->error = $e->getMessage();
@@ -232,21 +232,19 @@ class obf_assertion {
             $message->smallmessage = '';
             message_send($message);
 
-            $messagebadgerevoked->fullmessage = $messagebadgerevoked->fullmessage .'<br>'. get_string('badgerevokedbody', 'local_obf', [
-                'badgename' => $badge->get_name(),
-                'firstname' => $userto->firstname,
-                'lastname' => $userto->lastname,
-            ]) . '<br>';
+            $messagebadgerevoked->fullmessage = $messagebadgerevoked->fullmessage . '<br>' .
+                get_string('badgerevokedbody', 'local_obf',
+                    ['badgename' => $badge->get_name(), 'firstname' => $userto->firstname, 'lastname' => $userto->lastname]) .
+                '<br>';
 
-            $messagebadgerevoked->fullmessagehtml = $messagebadgerevoked->fullmessagehtml .'<br>'. get_string('badgerevokedbody', 'local_obf', [
-                    'badgename' => $badge->get_name(),
-                    'firstname' => $userto->firstname,
-                    'lastname' => $userto->lastname,
-                ]) . '<br>';
+            $messagebadgerevoked->fullmessagehtml = $messagebadgerevoked->fullmessagehtml . '<br>' .
+                get_string('badgerevokedbody', 'local_obf',
+                    ['badgename' => $badge->get_name(), 'firstname' => $userto->firstname, 'lastname' => $userto->lastname]) .
+                '<br>';
         }
 
         // Send notification to teachers.
-        $capability = 'local/obf:viewspecialnotif'; // Capability name
+        $capability = 'local/obf:viewspecialnotif'; // Capability name.
         if (get_course($courseid)->category) {
             $contextrole = context_coursecat::instance(get_course($courseid)->category);
         } else {
@@ -256,49 +254,48 @@ class obf_assertion {
         // Get the roles matching the capability.
         $roles = get_roles_with_cap_in_context($contextrole, $capability);
 
-        // Get the users with the matching roles in the course
-        $roleIds = array_keys($roles[0]);
+        // Get the users with the matching roles in the course.
+        $roleids = array_keys($roles[0]);
         $managerusers = array();
-        foreach ($roleIds as $roleId) {
-            $roleUsers = get_role_users($roleId, context_course::instance($courseid), false, 'u.*');
-            // Add role users to $managerusers only if they don't already exist
-            foreach ($roleUsers as $roleUser) {
-                $userExists = false;
+        foreach ($roleids as $roleid) {
+            $roleusers = get_role_users($roleid, context_course::instance($courseid), false, 'u.*');
+            // Add role users to $managerusers only if they don't already exist.
+            foreach ($roleusers as $roleuser) {
+                $userexists = false;
 
                 foreach ($managerusers as $manageruser) {
-                    if ($manageruser->id == $roleUser->id) {
-                        $userExists = true;
+                    if ($manageruser->id == $roleuser->id) {
+                        $userexists = true;
                         break;
                     }
                 }
 
-                if (!$userExists) {
-                    $managerusers[] = $roleUser;
+                if (!$userexists) {
+                    $managerusers[] = $roleuser;
                 }
             }
         }
 
-        // If no users found, send the notification to platform admins
+        // If no users found, send the notification to platform admins.
         if (empty($managerusers) && $courseid == 1) {
             $managerusers = get_admins();
         }
 
-        // Iterate over the list of users
+        // Iterate over the list of users.
         foreach ($managerusers as $manageruser) {
 
-            // Compose the revoked message
+            // Compose the revoked message.
             $messagebadgerevoked->component = 'local_obf'; // The component triggering the message.
             $messagebadgerevoked->name = 'revokedbadgetostudent'; // The name of your custom message.
-            $messagebadgerevoked->userfrom = \core_user::get_noreply_user(); // The user sending the message (can be an admin or system).
+            $messagebadgerevoked->userfrom =
+                \core_user::get_noreply_user(); // The user sending the message (can be an admin or system).
             $messagebadgerevoked->userto = $manageruser; // The user receiving the message.
             $badgename = $badge->get_name();
-            $messagebadgerevoked->subject = get_string('badgerevokedsubject', 'local_obf', [
-                'badgename' => $badgename
-            ]);
+            $messagebadgerevoked->subject = get_string('badgerevokedsubject', 'local_obf', ['badgename' => $badgename]);
 
             $messagebadgerevoked->fullmessageformat = FORMAT_MARKDOWN;
 
-            // Send the message
+            // Send the message.
             message_send($messagebadgerevoked);
         }
 
@@ -337,11 +334,8 @@ class obf_assertion {
     public function toarray() {
         $badgearr = $this->badge instanceof obf_badge ? $this->badge->toarray() : array();
 
-        return array(
-            'badge' => $badgearr,
-            'issued_on' => $this->get_issuedon() == '' ? '-' : $this->get_issuedon(),
-            'expires' => $this->get_expires() == '' ? '-' : $this->get_expires(),
-            'source' => $this->get_source());
+        return array('badge' => $badgearr, 'issued_on' => $this->get_issuedon() == '' ? '-' : $this->get_issuedon(),
+            'expires' => $this->get_expires() == '' ? '-' : $this->get_expires(), 'source' => $this->get_source());
     }
 
     /**
@@ -355,7 +349,8 @@ class obf_assertion {
      * @param array $searchparams
      * @return obf_assertion_collection The assertions.
      */
-    public static function get_assertions(obf_client $client, obf_badge $badge = null, $email = null, $limit = -1, $geteachseparately = false, $searchparams = array()) {
+    public static function get_assertions(obf_client $client, obf_badge $badge = null, $email = null, $limit = -1,
+        $geteachseparately = false, $searchparams = array()) {
         global $DB;
 
         $badgeid = is_null($badge) ? null : $badge->get_id();
@@ -399,26 +394,27 @@ class obf_assertion {
                     }
 
                     // Check if the recipient is a valid user email on the platform.
-                    $recipientEmails = $assertion->get_recipients();
-                    $validRecipients = array();
-                    foreach ($recipientEmails as $recipient) {
+                    $recipientemails = $assertion->get_recipients();
+                    $validrecipients = array();
+                    foreach ($recipientemails as $recipient) {
                         $user = $DB->get_record('user', array('email' => $recipient));
 
                         if ($assertion->is_revoked_for_email($user->email)) {
                             continue;
                         }
 
-                        $nameMatch = stripos($item['name'], $searchparams['query']) !== false;
-                        $recipientMatch = stripos($recipient, $searchparams['query']) !== false;
-                        $fullNameMatch = $user !== false && stripos($user->firstname . ' ' . $user->lastname, $searchparams['query']) !== false;
+                        $namematch = stripos($item['name'], $searchparams['query']) !== false;
+                        $recipientmatch = stripos($recipient, $searchparams['query']) !== false;
+                        $fullnamematch =
+                            $user !== false && stripos($user->firstname . ' ' . $user->lastname, $searchparams['query']) !== false;
 
-                        if ($nameMatch || $recipientMatch || $fullNameMatch) {
-                            $validRecipients[] = $recipient;
+                        if ($namematch || $recipientmatch || $fullnamematch) {
+                            $validrecipients[] = $recipient;
                         }
                     }
 
-                    if (!empty($validRecipients) && !empty($user)) {
-                        $assertion->set_recipients($validRecipients);
+                    if (!empty($validrecipients) && !empty($user)) {
+                        $assertion->set_recipients($validrecipients);
                         $assertions[] = $assertion;
                     }
                 }
@@ -426,10 +422,9 @@ class obf_assertion {
         }
 
         // Sort the assertions by date...
-        usort($assertions,
-            function (obf_assertion $a1, obf_assertion $a2) {
-                return $a1->get_issuedon() - $a2->get_issuedon();
-            });
+        usort($assertions, function(obf_assertion $a1, obf_assertion $a2) {
+            return $a1->get_issuedon() - $a2->get_issuedon();
+        });
 
         // ... And limit the result set if that's what we want.
         if ($limit > 0) {
@@ -438,7 +433,6 @@ class obf_assertion {
 
         return new obf_assertion_collection($assertions);
     }
-
 
     /**
      * Returns all assertions matching the search criteria, for all connected clients.
@@ -449,8 +443,7 @@ class obf_assertion {
      * @param int $limit Limit the amount of results.
      * @return \classes\obf_assertion_collection The assertions.
      */
-    public
-    static function get_assertions_all(obf_client $client, $email) {
+    public static function get_assertions_all(obf_client $client, $email) {
 
         $arr = $client->get_assertions_all($email);
         $assertions = array();
@@ -478,10 +471,9 @@ class obf_assertion {
         }
 
         // Sort the assertions by date...
-        usort($assertions,
-            function(obf_assertion $a1, obf_assertion $a2) {
-                return $a1->get_issuedon() - $a2->get_issuedon();
-            });
+        usort($assertions, function(obf_assertion $a1, obf_assertion $a2) {
+            return $a1->get_issuedon() - $a2->get_issuedon();
+        });
 
         return new obf_assertion_collection($assertions);
     }
@@ -494,8 +486,7 @@ class obf_assertion {
      * @param type $eventid The event id.
      * @return obf_badge
      */
-    public
-    static function get_assertion_badge($client, $badgeid, $eventid) {
+    public static function get_assertion_badge($client, $badgeid, $eventid) {
         $cache = cache::make('local_obf', 'obf_pub_badge');
         $cacheid = $badgeid . '/' . $eventid;
         $arr = $cache->get($cacheid);
@@ -515,8 +506,7 @@ class obf_assertion {
         return null;
     }
 
-    public
-    static function get_user_moodle_badge_assertions($userid = 0, $limit = -1) {
+    public static function get_user_moodle_badge_assertions($userid = 0, $limit = -1) {
         global $CFG;
         $badgeslibfile = $CFG->libdir . '/badgeslib.php';
         $assertions = array();
@@ -536,10 +526,9 @@ class obf_assertion {
             }
         }
         // Sort the assertions by date...
-        usort($assertions,
-            function(obf_assertion $a1, obf_assertion $a2) {
-                return $a1->get_issuedon() - $a2->get_issuedon();
-            });
+        usort($assertions, function(obf_assertion $a1, obf_assertion $a2) {
+            return $a1->get_issuedon() - $a2->get_issuedon();
+        });
 
         // ... And limit the result set if that's what we want.
         if ($limit > 0) {
@@ -555,8 +544,7 @@ class obf_assertion {
      * @param obf_assertion $another
      * @return boolean True on success, false otherwise.
      */
-    public
-    function equals(obf_assertion $another) {
+    public function equals(obf_assertion $another) {
         $recipients = $this->get_valid_recipients();
         $recipientsforanother = $another->get_valid_recipients();
         // When getting assertions from OBF for signle user, the recipientlist only has 1 recipient,
@@ -573,9 +561,7 @@ class obf_assertion {
      * @param obf_client $client
      * @return obf_assertion_collection The related assertions.
      */
-    public
-    static function get_badge_assertions(obf_badge $badge,
-        obf_client $client) {
+    public static function get_badge_assertions(obf_badge $badge, obf_client $client) {
         return self::get_assertions($client, $badge);
     }
 
@@ -584,8 +570,7 @@ class obf_assertion {
      *
      * @return boolean True, if the badge has expired and false otherwise.
      */
-    public
-    function badge_has_expired() {
+    public function badge_has_expired() {
         return ($this->has_expiration_date() && $this->expires < time());
     }
 
@@ -594,8 +579,7 @@ class obf_assertion {
      *
      * @return boolean True if expiration date is set
      */
-    public
-    function has_expiration_date() {
+    public function has_expiration_date() {
         return !empty($this->expires) && $this->expires != 0;
     }
 
@@ -604,8 +588,7 @@ class obf_assertion {
      *
      * @return int Expiration date as a unix-timestamp
      */
-    public
-    function get_expires() {
+    public function get_expires() {
         return $this->expires;
     }
 
@@ -615,8 +598,7 @@ class obf_assertion {
      * @param int $expires Expiration date as a unix-timestamp
      * @return $this
      */
-    public
-    function set_expires($expires) {
+    public function set_expires($expires) {
         $this->expires = $expires;
         return $this;
     }
@@ -626,8 +608,7 @@ class obf_assertion {
      *
      * @return int
      */
-    public
-    function get_id() {
+    public function get_id() {
         return $this->id;
     }
 
@@ -636,8 +617,7 @@ class obf_assertion {
      *
      * @param int $id
      */
-    public
-    function set_id($id) {
+    public function set_id($id) {
         $this->id = $id;
         return $this;
     }
@@ -647,8 +627,7 @@ class obf_assertion {
      *
      * @return string
      */
-    public
-    function get_client_id() {
+    public function get_client_id() {
         return $this->client_id;
     }
 
@@ -657,8 +636,7 @@ class obf_assertion {
      *
      * @param string $id
      */
-    public
-    function set_client_id($clientid) {
+    public function set_client_id($clientid) {
         $this->client_id = $clientid;
         return $this;
     }
@@ -668,8 +646,7 @@ class obf_assertion {
      *
      * @return string Error message.
      */
-    public
-    function get_error() {
+    public function get_error() {
         return $this->error;
     }
 
@@ -678,8 +655,7 @@ class obf_assertion {
      *
      * @return obf_badge
      */
-    public
-    function get_badge() {
+    public function get_badge() {
         return $this->badge;
     }
 
@@ -689,8 +665,7 @@ class obf_assertion {
      * @param obf_badge $badge
      * @return $this
      */
-    public
-    function set_badge($badge) {
+    public function set_badge($badge) {
         $this->badge = $badge;
         return $this;
     }
@@ -700,8 +675,7 @@ class obf_assertion {
      *
      * @return string Criteria addendum
      */
-    public
-    function get_criteria_addendum() {
+    public function get_criteria_addendum() {
         return $this->criteriaaddendum;
     }
 
@@ -711,8 +685,7 @@ class obf_assertion {
      * @param string $criteriaaddendum
      * @return \obf_assertion
      */
-    public
-    function set_criteria_addendum($criteriaaddendum) {
+    public function set_criteria_addendum($criteriaaddendum) {
         $this->criteriaaddendum = $criteriaaddendum;
         return $this;
     }
@@ -722,8 +695,7 @@ class obf_assertion {
      *
      * @return string Email subject
      */
-    public
-    function get_emailsubject() {
+    public function get_emailsubject() {
         return $this->get_email_template()->get_subject();
     }
 
@@ -732,8 +704,7 @@ class obf_assertion {
      *
      * @param string $emailsubject
      */
-    public
-    function set_emailsubject($emailsubject) {
+    public function set_emailsubject($emailsubject) {
         $this->get_email_template()->set_subject($emailsubject);
         return $this;
     }
@@ -743,8 +714,7 @@ class obf_assertion {
      *
      * @return string Email footer
      */
-    public
-    function get_emailfooter() {
+    public function get_emailfooter() {
         return $this->get_email_template()->get_footer();
     }
 
@@ -753,8 +723,7 @@ class obf_assertion {
      *
      * @param string $emailfooter Email footer
      */
-    public
-    function set_emailfooter($emailfooter) {
+    public function set_emailfooter($emailfooter) {
         $this->get_email_template()->set_footer($emailfooter);
         return $this;
     }
@@ -764,8 +733,7 @@ class obf_assertion {
      *
      * @return string Email message body
      */
-    public
-    function get_emailbody() {
+    public function get_emailbody() {
         return $this->get_email_template()->get_body();
     }
 
@@ -774,8 +742,7 @@ class obf_assertion {
      *
      * @param string $emailbody Email message body
      */
-    public
-    function set_emailbody($emailbody) {
+    public function set_emailbody($emailbody) {
         $this->get_email_template()->set_body($emailbody);
         return $this;
     }
@@ -785,8 +752,7 @@ class obf_assertion {
      *
      * @return int Issue time as a unix-timestamp
      */
-    public
-    function get_issuedon() {
+    public function get_issuedon() {
         return $this->issuedon;
     }
 
@@ -795,8 +761,7 @@ class obf_assertion {
      *
      * @param int $issuedon Issue time as a unix-timestamp
      */
-    public
-    function set_issuedon($issuedon) {
+    public function set_issuedon($issuedon) {
         $this->issuedon = $issuedon;
         return $this;
     }
@@ -805,8 +770,7 @@ class obf_assertion {
      * @param $key
      * @return mixed
      */
-    public
-    function get_log_entry($key) {
+    public function get_log_entry($key) {
         return isset($this->log_entry[$key]) ? $this->log_entry[$key] : null;
     }
 
@@ -814,8 +778,7 @@ class obf_assertion {
      * @param $logentry
      * @return $this
      */
-    public
-    function set_log_entry($logentry) {
+    public function set_log_entry($logentry) {
         $this->log_entry = $logentry;
         return $this;
     }
@@ -825,8 +788,7 @@ class obf_assertion {
      *
      * @return string[] Array of email addresses who received the assertion
      */
-    public
-    function get_recipients() {
+    public function get_recipients() {
         return $this->recipients;
     }
 
@@ -835,8 +797,7 @@ class obf_assertion {
      *
      * @return string[] Email-addresses of recipients.
      */
-    public
-    function get_valid_recipients() {
+    public function get_valid_recipients() {
         $recipients = $this->recipients;
         foreach ($this->recipients as $recipient) {
             $email = $recipient;
@@ -855,8 +816,7 @@ class obf_assertion {
      *
      * @param string[] $recipients Array of recipient email addresses
      */
-    public
-    function set_recipients($recipients) {
+    public function set_recipients($recipients) {
         $this->recipients = $recipients;
         return $this;
     }
@@ -866,8 +826,7 @@ class obf_assertion {
      *
      * @return int Assertion source as self::ASSERTION_SOURCE_*
      */
-    public
-    function get_source() {
+    public function get_source() {
         return $this->source;
     }
 
@@ -876,8 +835,7 @@ class obf_assertion {
      *
      * @param int $source Assertion source as self::ASSERTION_SOURCE_*
      */
-    public
-    function set_source($source) {
+    public function set_source($source) {
         $this->source = $source;
         return $this;
     }
@@ -888,8 +846,7 @@ class obf_assertion {
      * @param obf_client $client
      * @return array Array of revocation details as array(array(email-address => unix-timestamp),...)
      */
-    public
-    function get_revoked(obf_client $client = null) {
+    public function get_revoked(obf_client $client = null) {
         if (!is_null($client) && count($this->revoked) < 1) {
             try {
                 $arr = $client->get_revoked($this->id);
@@ -910,8 +867,7 @@ class obf_assertion {
      * @param array $revoked Array of revocation details as array(array(email-address => unix-timestamp),...)
      * @return $this
      */
-    public
-    function set_revoked($revoked) {
+    public function set_revoked($revoked) {
         $this->revoked = $revoked;
         return $this;
     }
@@ -923,8 +879,7 @@ class obf_assertion {
      * @return bool True if revoked for user.
      * @todo Should users backpack emails be checked also?
      */
-    public
-    function is_revoked_for_user(stdClass $user) {
+    public function is_revoked_for_user(stdClass $user) {
         return (in_array($user->email, array_keys($this->revoked)));
     }
 
@@ -935,8 +890,7 @@ class obf_assertion {
      * @return bool True if revoked for address.
      * @todo Should users backpack emails be checked also?
      */
-    public
-    function is_revoked_for_email($email) {
+    public function is_revoked_for_email($email) {
         return (in_array($email, array_keys($this->revoked)));
     }
 
@@ -945,8 +899,7 @@ class obf_assertion {
      *
      * @return string
      */
-    public
-    function get_name() {
+    public function get_name() {
         return $this->name;
     }
 
@@ -956,8 +909,7 @@ class obf_assertion {
      * @param string $name
      * @return $this
      */
-    public
-    function set_name($name) {
+    public function set_name($name) {
         $this->name = $name;
         return $this;
     }
@@ -968,8 +920,7 @@ class obf_assertion {
      * @param array $emails Limit users to specified email addresses
      * @return stdClass[]
      */
-    public
-    function get_users($emails = null) {
+    public function get_users($emails = null) {
         global $DB;
         if (is_null($emails)) {
             $emails = $this->get_recipients();
@@ -985,24 +936,21 @@ class obf_assertion {
             foreach ($emails as $email) {
                 $backpack = obf_backpack::get_instance_by_backpack_email($email);
                 if ($backpack !== false) {
-                    $users[] = $DB->get_record('user',
-                        array('id' => $backpack->get_user_id()));
+                    $users[] = $DB->get_record('user', array('id' => $backpack->get_user_id()));
                 }
             }
         }
         return $users;
     }
 
-    public
-    function get_email_template() {
+    public function get_email_template() {
         if (is_null($this->emailtemplate)) {
             $this->emailtemplate = new obf_email();
         }
         return $this->emailtemplate;
     }
 
-    public
-    function set_email_template(obf_email $emailtemplate) {
+    public function set_email_template(obf_email $emailtemplate) {
         $this->emailtemplate = $emailtemplate;
         return $this;
     }

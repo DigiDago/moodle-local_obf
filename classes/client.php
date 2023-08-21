@@ -496,19 +496,19 @@ class obf_client {
         if ($courseid) {
             $course = get_course($courseid);
 
-            $categoryId = $course->category;
+            $categoryid = $course->category;
 
             // Get the category path.
-            $categoryPath = $DB->get_field('course_categories', 'path', ['id' => $categoryId]);
+            $categorypath = $DB->get_field('course_categories', 'path', ['id' => $categoryid]);
 
             // Split the category path into an array of category IDs.
-            $categoryIds = explode('/', trim($categoryPath, '/'));
+            $categoryids = explode('/', trim($categorypath, '/'));
 
             // Add the current category ID to the array.
-            $categoryIds[] = $categoryId;
+            $categoryids[] = $categoryid;
 
             // Prepare the placeholders for the SQL query.
-            $placeholders = implode(',', array_fill(0, count($categoryIds), '?'));
+            $placeholders = implode(',', array_fill(0, count($categoryids), '?'));
 
             // If any rules are define on site we will prevent display categories in case there is no rule for current categ.
             $anyrulesdefinesql = "SELECT * FROM {local_obf_rulescateg}";
@@ -516,16 +516,16 @@ class obf_client {
 
             // Construct the SQL query.
             $sql = "SELECT * FROM {local_obf_rulescateg} WHERE oauth2_id = ? AND (coursecategorieid IN ($placeholders))";
-            $params = [obf_client::get_instance()->oauth2->id];
-            $params = array_merge($params, $categoryIds);
+            $params = [self::get_instance()->oauth2->id];
+            $params = array_merge($params, $categoryids);
 
             $rules = $DB->get_records_sql($sql, $params);
 
-            $hasZero = false; // Variable to track if at least one occurrence of zero is found.
+            $haszero = false; // Variable to track if at least one occurrence of zero is found.
 
             foreach ($rules as $rule) {
                 if ($rule->badgecategoriename === '0' || $rule->badgecategoriename === null) {
-                    $hasZero = true; // An occurrence of zero is found.
+                    $haszero = true; // An occurrence of zero is found.
                     break; // Exit the loop as soon as an occurrence is found.
                 }
 
@@ -534,7 +534,7 @@ class obf_client {
                 }
             }
 
-            if ($hasZero) {
+            if ($haszero) {
                 $categories = []; // Reset $categories to null if an occurrence of zero is found.
             }
         }
@@ -788,10 +788,9 @@ class obf_client {
         $now = time();
         $sql = "INSERT INTO {local_obf_history_emails} (user_id, email, timestamp) VALUES (?,?,?)";
 
-
-        // Compose the message
+        // Compose the message.
         $messagemanagerbadgeissue = new message();
-        $courseid = $badge->get_course_id(); // ID du cours
+        $courseid = $badge->get_course_id(); // ID cours.
 
         foreach ($users as $user) {
 
@@ -814,7 +813,7 @@ class obf_client {
             // Get the user ID who is receiving the badge.
             $userid = $user->id;
 
-            // Compose the message
+            // Compose the message.
             $message = new message();
             $message->component = 'local_obf'; // The component triggering the message.
             $message->name = 'issued'; // The name of your custom message.
@@ -838,7 +837,7 @@ class obf_client {
                 array('courselink' => $courselink, 'badgelink' => $badgelink));
             $message->fullmessageformat = FORMAT_MARKDOWN;
 
-            // Send the message
+            // Send the message.
             message_send($message);
 
             $courseurl = new moodle_url('/course/view.php', array('id' => $courseid));
@@ -862,7 +861,7 @@ class obf_client {
         }
 
         // Send notification to teachers.
-        $capability = 'local/obf:viewspecialnotif'; // Capability name
+        $capability = 'local/obf:viewspecialnotif'; // Capability name.
         if (get_course($courseid)->category) {
             $contextrole = context_coursecat::instance(get_course($courseid)->category);
         } else {
@@ -872,46 +871,46 @@ class obf_client {
         // Get the roles matching the capability.
         $roles = get_roles_with_cap_in_context($contextrole, $capability);
 
-        // Get the users with the matching roles in the course
-        $roleIds = array_keys($roles[0]);
+        // Get the users with the matching roles in the course.
+        $roleids = array_keys($roles[0]);
         $managerusers = array();
-        foreach ($roleIds as $roleId) {
-            $roleUsers = get_role_users($roleId, context_course::instance($courseid), false, 'u.*');
-            // Add role users to $managerusers only if they don't already exist
-            foreach ($roleUsers as $roleUser) {
-                $userExists = false;
+        foreach ($roleids as $roleid) {
+            $roleusers = get_role_users($roleid, context_course::instance($courseid), false, 'u.*');
+            // Add role users to $managerusers only if they don't already exist.
+            foreach ($roleusers as $roleuser) {
+                $userexists = false;
 
                 foreach ($managerusers as $manageruser) {
-                    if ($manageruser->id == $roleUser->id) {
-                        $userExists = true;
+                    if ($manageruser->id == $roleuser->id) {
+                        $userexists = true;
                         break;
                     }
                 }
 
-                if (!$userExists) {
-                    $managerusers[] = $roleUser;
+                if (!$userexists) {
+                    $managerusers[] = $roleuser;
                 }
             }
         }
 
-        // If no users found, send the notification to platform admins
+        // If no users found, send the notification to platform admins.
         if (empty($managerusers) && $courseid == 1) {
             $managerusers = get_admins();
         }
 
-        // Parcourir la liste des utilisateurs
+        // Loop User list.
         foreach ($managerusers as $manageruser) {
-            // Accéder aux informations de l'utilisateur
+            // Access user data.
             $userid = $manageruser->id;
 
             $messagemanagerbadgeissue->component = 'local_obf'; // The component triggering the message.
             $messagemanagerbadgeissue->name = 'issuedbadgetostudent'; // The name of your custom message.
-            $messagemanagerbadgeissue->userfrom = \core_user::get_noreply_user(); // The user sending the message (can be an admin or system).
+            $messagemanagerbadgeissue->userfrom = \core_user::get_noreply_user();
+            // The user sending the message (can be an admin or system).
             $messagemanagerbadgeissue->userto = \core_user::get_user($userid); // The user receiving the message.
             if (empty($courseid)) {
                 $courseid = 1;
             }
-            $coursename = get_course($courseid)->fullname;
 
             $messagemanagerbadgeissue->subject = get_string('badgeissuedsubject', 'local_obf', [
                 'badgename' => $badgename
@@ -919,7 +918,7 @@ class obf_client {
 
             $messagemanagerbadgeissue->fullmessageformat = FORMAT_MARKDOWN;
 
-            // Send the message
+            // Send the message.
             message_send($messagemanagerbadgeissue);
         }
 
