@@ -153,7 +153,7 @@ class obf_criterion_profile extends obf_criterion_course {
             if (is_numeric($id)) {
                 $str = $DB->get_field('user_info_field', 'name', array('id' => $id));
             } else {
-                $str = get_user_field_name($id);
+                $str = \core_user\fields::get_display_name($id);
             }
             $obj = new stdClass();
             $obj->id = $id;
@@ -266,7 +266,7 @@ class obf_criterion_profile extends obf_criterion_course {
                     $checked = true;
                 }
                 $this->config_options($mform,
-                    array('id' => $field, 'checked' => $checked, 'name' => get_user_field_name($field), 'error' => false));
+                    array('id' => $field, 'checked' => $checked, 'name' => \core_user\fields::get_display_name($field), 'error' => false));
                 $none = false;
             }
         }
