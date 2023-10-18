@@ -627,6 +627,7 @@ class obf_client {
         if (is_null($badgeid) && !is_null($email)) {
             return array();
         }
+
         if ($this->local_events()) {
             $params['api_consumer_id'] = OBF_API_CONSUMER_ID;
         }

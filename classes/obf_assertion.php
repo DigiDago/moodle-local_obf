@@ -355,6 +355,7 @@ class obf_assertion {
         $geteachseparately = false, $searchparams = array()) {
         $badgeid = is_null($badge) ? null : $badge->get_id();
         $arr = $client->get_assertions($badgeid, $email, $searchparams);
+
         $assertions = array();
 
         if (!$geteachseparately) {

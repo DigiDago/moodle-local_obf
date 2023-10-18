@@ -522,8 +522,9 @@ if (!function_exists('users_order_by_sql')) {
         $paramkey++;
 
         $fieldstocheck = array_merge(array('firstname', 'lastname'),
-            get_extra_user_fields($context));
-        foreach ($fieldstocheck as $key => $field) {
+            \core_user\fields::get_identity_fields($context));
+
+        foreach ($fieldstocheck as $field) {
             $exactconditions[] = 'LOWER(' . $tableprefix . $field . ') = LOWER(:' . $paramkey . ')';
             $params[$paramkey] = $search;
             $paramkey++;
@@ -534,7 +535,6 @@ if (!function_exists('users_order_by_sql')) {
 
         return array($sort, $params);
     }
-
 }
 
 /**
